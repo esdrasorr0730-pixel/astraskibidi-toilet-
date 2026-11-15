@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ASTRA | Crew Health System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#040b19;--ln:#1b4a6e;--tx:#e6f4ff;--mu:#7fa3c4;--cy:#3fe0f0;--bl:#4d8dff;--ok:#3fe0a8;--wn:#ffc857;--bd:#ff5d73;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--tx);font:500 15px/1.4 Rajdhani,system-ui,sans-serif;background:radial-gradient(circle at 80% -10%,#0d3a66 0,transparent 42%),linear-gradient(rgba(63,224,240,.045) 1px,transparent 1px) 0 0/100% 38px,linear-gradient(90deg,rgba(63,224,240,.045) 1px,transparent 1px) 0 0/38px 100%,var(--bg)}
+body.scan:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+.shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+aside{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:100vh;overflow:auto;border-right:1px solid var(--ln);padding:22px 14px;background:rgba(4,11,25,.82)}
+.brand{display:flex;gap:11px;align-items:center;padding:0 8px 18px}
+.logo{width:40px;height:40px;display:grid;place-items:center;font-size:20px;color:#04121f;background:linear-gradient(145deg,var(--cy),var(--bl));clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.brand b{letter-spacing:.24em;font-size:20px}.brand small{display:block;color:var(--mu);font-size:10px;letter-spacing:.14em}
+.nl{color:#4f7394;font-size:11px;letter-spacing:.2em;font-weight:700;padding:14px 10px 6px}
+.nav{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:11px;width:100%;padding:10px;margin:2px 0;color:var(--mu);cursor:pointer;border-left:2px solid transparent;font-weight:600;font-size:15px}
+.nav:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--cy)}
+.nav i{font-style:normal;width:20px;text-align:center;color:var(--cy)}
+.nav:hover{background:rgba(63,224,240,.07);color:var(--tx)}
+.nav.on{color:var(--tx);background:linear-gradient(90deg,rgba(63,224,240,.22),transparent);border-left-color:var(--cy)}
+.nav.ai{border:1px solid rgba(77,141,255,.55);background:rgba(77,141,255,.1);margin-top:6px}
+.badge{margin-left:auto;font-style:normal;background:var(--bd);color:#fff;border-radius:9px;padding:0 7px;font-size:11px}.badge:empty{display:none}
+.sb{margin-top:22px;padding:12px;border:1px solid var(--ln);background:rgba(10,26,48,.7);font-size:12px;color:var(--mu)}.sb b{display:block;color:var(--ok);margin:3px 0}
+main{padding:24px clamp(16px,3vw,40px) 36px;max-width:1500px;width:100%;margin:auto;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.eb{color:var(--cy);font-size:11px;letter-spacing:.2em;font-weight:700}
+h1{font-size:clamp(26px,3.2vw,36px);letter-spacing:.02em;margin:2px 0;text-transform:uppercase}
+.sub{color:var(--mu)}
+.ecg{width:150px;height:26px;display:block;margin-top:6px}.ecg path{fill:none;stroke:var(--cy);stroke-width:2;stroke-dasharray:100;animation:dash 2.6s linear infinite;filter:drop-shadow(0 0 3px var(--cy))}
+@keyframes dash{from{stroke-dashoffset:100}to{stroke-dashoffset:-100}}
+@keyframes pl{50%{box-shadow:0 0 14px var(--bd)}}
+.acts{display:flex;gap:10px;align-items:center}
+.pill{all:unset;cursor:pointer;border:1px solid #1d6b57;background:#0a2a2a;color:var(--ok);padding:7px 12px;border-radius:99px;font-size:12px;letter-spacing:.08em;font-weight:700}
+.pill.off{border-color:#6b5a1d;background:#2a240a;color:var(--wn)}
+select,.inp{background:#0a1a30;border:1px solid var(--ln);color:var(--tx);padding:8px 10px;font:inherit}
+.view{display:none}.view.on{display:block}
+.g{display:grid;gap:14px;margin-bottom:14px}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.gm{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+.card{position:relative;background:linear-gradient(160deg,rgba(14,36,64,.9),rgba(6,18,36,.95));border:1px solid var(--ln);padding:16px;min-width:0;color:var(--tx);text-align:left;font:inherit;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.card:before{content:"";position:absolute;left:0;top:0;width:16px;height:16px;border-top:2px solid var(--cy);border-left:2px solid var(--cy)}
+button.card{cursor:pointer}button.card:hover,.card.sel{border-color:var(--cy);box-shadow:inset 0 0 22px rgba(63,224,240,.12)}
+.ct{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.ct h2{font-size:16px;letter-spacing:.08em;text-transform:uppercase;margin:0}.ct p{margin:2px 0 0;color:var(--mu);font-size:12px}
+.tag{border:1px solid var(--ln);padding:3px 8px;color:var(--mu);font-size:11px;letter-spacing:.1em;background:none;font-family:inherit}
+button.tag{cursor:pointer}button.tag:hover,.tag.on{color:var(--cy);border-color:var(--cy)}
+.sh{display:flex;justify-content:space-between;gap:6px;color:var(--mu);font-size:11px;letter-spacing:.1em;font-weight:700}.sh b{color:var(--cy);font-size:17px;font-weight:400}
+.sv{font-size:30px;margin:8px 0 2px}.sv small{color:var(--mu);font-size:13px}.sf{font-size:12px}.sf span{color:var(--mu)}
+.good{color:var(--ok)}.warn{color:var(--wn)}.bad{color:var(--bd)}
+canvas{width:100%;height:100%;display:block}.cw{height:240px}
+.lg{display:flex;gap:16px;color:var(--mu);font-size:12px;margin-top:8px;flex-wrap:wrap}
+.row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #12314d;font-size:14px}.row:last-child{border:0}.row span:first-child{color:var(--mu)}
+.ring{display:flex;align-items:center;gap:14px;border:1px solid #1d6b57;background:#0a2a2a;padding:12px;margin-bottom:10px}.ring.wn{border-color:#6b5a1d;background:#2a240a}.ring.bd{border-color:#7a2433;background:#2b0f19}
+.ring svg{width:72px;height:72px;flex:none}.ring strong{display:block;font-size:20px;letter-spacing:.1em}.ring small{color:var(--mu)}
+.bn{display:none;margin-bottom:14px;padding:10px 14px;border:1px solid var(--bd);background:#2b0f19;color:#ffb3bd;animation:pl 1.6s infinite;font-weight:600;letter-spacing:.05em}.bn.wn{border-color:var(--wn);background:#2a240a;color:#ffe3a1}
+.radar{width:100%;max-height:270px}
+.al{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #12314d;align-items:flex-start}.al:last-child{border:0}.al i{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none}.al div{flex:1}.al strong{display:block;font-size:14px}.al small{color:var(--mu);font-size:12px}
+.i-ok{background:var(--ok)}.i-info{background:var(--bl)}.i-wn{background:var(--wn)}.i-bd{background:var(--bd);box-shadow:0 0 8px var(--bd)}
+.x{all:unset;cursor:pointer;color:var(--mu);padding:0 6px}.x:hover{color:var(--bd)}
+.cr{display:flex;flex-direction:column;gap:10px}.cr .hd{display:flex;gap:12px;align-items:center}.cr h3{margin:0;font-size:18px}.cr small{color:var(--mu)}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px;color:var(--mu)}.mini b{display:block;color:var(--tx);font-size:17px;font-weight:400}
+.btns{display:flex;gap:8px}.btn{all:unset;cursor:pointer;border:1px solid var(--cy);color:var(--cy);padding:6px 12px;font-size:13px;font-weight:700;letter-spacing:.06em;text-align:center}.btn:hover{background:rgba(63,224,240,.15)}.btn.f{flex:1}
+.sp{width:100%;height:30px;display:block;margin:6px 0}
+.src{font-size:12px;color:var(--mu);border-top:1px dashed #1b4a6e;padding-top:6px;margin-top:6px}
+a{color:var(--cy)}
+.chat{height:380px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:4px}
+.msg{max-width:82%;padding:9px 12px;white-space:pre-line;border:1px solid var(--ln)}.msg.ai{background:rgba(63,224,240,.08);align-self:flex-start}.msg.me{background:rgba(77,141,255,.2);align-self:flex-end}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.inbar{display:flex;gap:8px}.inbar .inp{flex:1;min-width:0}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #12314d}.set:last-child{border:0}.set small{display:block;color:var(--mu)}
+.nt{margin-top:14px;padding:10px 12px;border:1px solid #66532d;background:#2b2518;color:#e6ca87;font-size:12px}
+@media(max-width:900px){.shell{display:block}aside{position:static;height:auto;display:flex;gap:6px;overflow-x:auto;padding:10px;border-right:0;border-bottom:1px solid var(--ln)}.brand,.nl,.sb{display:none}.nav{width:auto;white-space:nowrap;margin:0;flex:none}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3,.g2,.gm{grid-template-columns:1fr}}
+@media(max-width:520px){.sv{font-size:25px}.card{padding:12px}.msg{max-width:94%}}
+
+:root{--bg:#06101f;--ln:#17304d;--cy:#38bdf8;--ok:#34d399;--wn:#facc15;--og:#fb923c;--bd:#f87171}
+body{background:var(--bg);font:400 15px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+body.scan:after,.ecg{display:none}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+h1{text-transform:none;font-weight:600}h1,h2,h3,.eb,.nl{letter-spacing:0}
+.card{border-radius:3px;box-shadow:none;background:#0a182c;border:1px solid var(--ln)}.card.sel{border-color:var(--cy)}
+.nav.on{background:#0e2440}
+.lv{display:inline-block;padding:3px 9px;border-radius:2px;font:600 12px "IBM Plex Sans",sans-serif}
+.lv-g{background:#0d3b2c;color:var(--ok)}.lv-y{background:#3b3408;color:var(--wn)}.lv-o{background:#43240b;color:var(--og)}.lv-r{background:#4a1418;color:var(--bd)}
+.ia{border-left:3px solid var(--ln);background:#08152a;padding:10px 12px;margin:10px 0}
+.ia[data-l=g]{border-color:var(--ok)}.ia[data-l=y]{border-color:var(--wn)}.ia[data-l=o]{border-color:var(--og)}.ia[data-l=r]{border-color:var(--bd)}
+.fx{display:grid;grid-template-columns:120px 1fr;gap:3px 12px;font-size:13px;margin-top:6px}.fx b{color:var(--mu);font-weight:500}
+.tb{width:100%;border-collapse:collapse;font-size:13px}.tb th{color:var(--mu);font-weight:500;text-align:left}.tb td,.tb th{padding:6px 8px;border-bottom:1px solid #12314d}.tbw{overflow-x:auto}
+.big{font-size:clamp(26px,4vw,44px);line-height:1.08;font-weight:600;margin:10px 0;max-width:18ch}
+.q{border-left:3px solid var(--cy);padding-left:12px;margin:12px 0;font-size:17px;max-width:60ch}
+.ul{margin:6px 0;padding-left:18px}.ul li{margin:3px 0}
+.pipe{display:flex;flex-direction:column;gap:4px;max-width:680px}.pipe .st{border:1px solid var(--ln);padding:9px 12px;background:#08152a}.ar{text-align:center;color:var(--cy)}
+.band{width:100%;max-width:700px;height:auto;display:block}
+@media(max-width:600px){.fx{grid-template-columns:1fr}}
+
+/* ASTRA clinical instrument interface */
+:root{--bg:#f4f7fa;--ln:#d6e0e8;--tx:#1e2933;--mu:#647786;--cy:#1677a8;--bl:#3979b8;--ok:#21805b;--wn:#a87512;--og:#b65a1d;--bd:#b53d49;color-scheme:light}
+body{background:#f4f7fa;color:var(--tx);font-family:"IBM Plex Sans",Arial,sans-serif}
+.shell{grid-template-columns:208px minmax(0,1fr)}
+aside{background:#fff;border-right:1px solid #d6e0e8;padding:20px 12px}
+.logo{background:#e4f1f8;color:#17678d;clip-path:none;border:1px solid #b9d4e3;border-radius:8px}
+.brand b{letter-spacing:.08em;color:#172b3a}.brand small{color:#738796;letter-spacing:.04em}
+.nl{color:#80919e;letter-spacing:.06em;font-size:10px}
+.nav{color:#506474;border-radius:6px;border-left:0;padding:10px}
+.nav i{color:#567f99}.nav.on{background:#eaf3f8;color:#145e83;border-left:0;font-weight:600}
+.nav.ai{background:#f3f8fb;border:1px solid #d4e4ee}
+.sb{background:#f8fafc;border:1px solid #dce5eb;color:#657786}.sb b{color:#23815b}
+main{max-width:1600px;padding:24px clamp(16px,2.5vw,34px)}
+h1{font-size:29px;color:#1b2b38;font-weight:600}
+.eb{color:#55788e;font-size:11px;letter-spacing:.08em}
+.sub{color:#6b7d89}
+.card{background:#fff;border:1px solid #d8e2e9;border-radius:8px;box-shadow:0 1px 2px rgba(26,49,67,.035);clip-path:none;color:#1e2933;padding:15px}
+.card:before{display:none}
+.card.sel,button.card:hover{border-color:#8db9d0;box-shadow:0 0 0 1px #d5e8f2}
+.ct h2{font-size:15px;color:#263c4c;font-weight:600}
+.ct p,.sf span,.sh{color:#718390}
+.tag{border:1px solid #d6e0e8;color:#607584;background:#f8fafc;border-radius:4px;letter-spacing:0}
+.lv-g{background:#e8f5ee;color:#26714f}.lv-y{background:#fff6df;color:#8b650c}.lv-o{background:#fff0e5;color:#a4511b}.lv-r{background:#fdebed;color:#a53a45}
+select,.inp{background:#fff;border-color:#d4e0e8;color:#253846;border-radius:5px}
+.pill{background:#e9f4ee;border-color:#c9e2d4;color:#27714e}
+.pill.off{background:#fff5df;color:#8b650c}
+.btn{border-color:#9bbdce;color:#176b91;border-radius:5px}
+.btn:hover{background:#edf6fa}
+.row,.al,.set{border-color:#e5ebef}
+.ring{background:#f3f8fb;border-color:#d5e5ed;color:#233746}
+.ring.wn{background:#fff8e8}.ring.bd{background:#fff0f1}
+.ia{background:#f8fafc;border-color:#dbe5eb}
+.pipe .st{background:#fff;border-color:#dbe5eb;border-radius:6px}
+.nt{background:#fff8e9;border-color:#ead7ae;color:#82631e}
+@media(max-width:900px){aside{background:#fff}}
+
+/* medical equipment skin */
+body{background:#e9eef2;padding:14px;color-scheme:light}
+.shell{background:#fff;border:1px solid #c3d0d9;border-radius:18px;box-shadow:0 0 0 5px #f6f9fb,0 12px 32px rgba(30,56,74,.14);overflow:clip;min-height:calc(100vh - 28px)}
+aside{height:calc(100vh - 28px);top:14px;background:#fbfcfd}
+.dev{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:-24px calc(-1*clamp(16px,2.5vw,34px)) 18px;padding:8px clamp(16px,2.5vw,34px);background:#f3f7fa;border-bottom:1px solid #dbe5eb;font-size:12px;color:#5d7280}
+.dev b{color:#1b2b38;letter-spacing:.06em;margin-right:8px}.dm{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2fb67e;box-shadow:0 0 0 2px #dff3ea;margin-right:5px}.led.w{background:#e0a21a;box-shadow:0 0 0 2px #fbefd0}
+.ecg,.ridge{display:block;border:1px solid #f0cfd4;border-radius:6px;background:linear-gradient(#f9dfe2 1px,transparent 1px) 0 0/100% 6px,linear-gradient(90deg,#f9dfe2 1px,transparent 1px) 0 0/6px 100%,#fffbfb}
+.ecg{width:min(100%,380px);height:38px;margin-top:10px}.ecg path{stroke:#168a5c;stroke-width:1.8;filter:none}
+.card{border-color:#d3dee6;box-shadow:0 1px 0 #fff inset,0 1px 3px rgba(30,56,74,.06)}
+#cards .sv,#hStats .sv{background:#f6f9fb;border:1px solid #e0e8ee;border-radius:6px;padding:6px 10px;box-shadow:inset 0 1px 2px rgba(30,56,74,.06);font-size:32px}
+.card.cr[data-pick]{cursor:pointer}.card.cr[data-pick]:hover,.card.cr[data-pick]:focus-visible{border-color:#8db9d0;box-shadow:0 0 0 2px #d5e8f2;outline:0}
+.bn{background:#fdebed;border-color:#e8b4ba;color:#a53a45}.bn.wn{background:#fff6df;border-color:#e6cf92;color:#8b650c}
+.src{border-color:#dbe5eb}.tb td,.tb th{border-color:#e5ebef}.nav.on{box-shadow:inset 3px 0 0 var(--cy)}
+.bxh{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:center}
+.bxh h2{font-size:clamp(26px,3.6vw,42px);line-height:1.08;margin:12px 0 10px;font-weight:600;color:#17394d;max-width:15ch;text-transform:none;letter-spacing:0}
+.bxh p{max-width:44ch;color:#4d6270;font-size:16px;margin:0}
+.flag{display:inline-block;width:24px;height:15px;border:1px solid #d6e0e8;border-radius:2px;vertical-align:-3px;margin-right:6px;background:linear-gradient(90deg,#d91023 33%,#fff 33% 67%,#d91023 67%)}
+.rg{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.ridge{width:100%;height:auto}.ridge path{fill:none;stroke:#168a5c;stroke-width:2.4;stroke-linejoin:round;stroke-dasharray:1;animation:draw 2.8s ease-out}
+@keyframes draw{from{stroke-dashoffset:1}}
+.bxs{font-size:13px;font-weight:600;color:#55788e;margin:24px 0 10px}
+.bxg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.bxt{border:1px solid #dbe5eb;border-radius:10px;padding:14px;background:#fff}
+.bxt .ic{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:#eaf3f8;font-size:21px;margin-bottom:10px}
+.bxt b{display:block;font-size:15px;color:#223a4a}.bxt span{display:block;color:#5d7280;font-size:13px;margin-top:2px}.bxt .tag{display:inline-block;margin:0}
+.bxt.n b{font-size:22px;color:#1677a8}
+.fl{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}.fl .bxt{flex:1 1 170px}.fl .a{align-self:center;color:#1677a8;font-size:22px}
+@media(max-width:900px){body{padding:0;background:#fff}.shell{border:0;border-radius:0;box-shadow:none}aside{height:auto;top:0}.bxh{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* selector de idioma EN / ES */
+#lang{all:unset;cursor:pointer;display:inline-flex;align-items:center;border:1px solid #c9d8e2;border-radius:99px;background:#f8fafc;padding:2px;font-size:12px;font-weight:700;letter-spacing:.08em;font-family:inherit}
+#lang span{padding:5px 10px;border-radius:99px;color:#607584;transition:background .15s,color .15s}
+#lang span.on{background:var(--cy,#1677a8);color:#fff}
+#lang:hover{border-color:#9bbdce}
+#lang:focus-visible{outline:2px solid var(--cy,#1677a8);outline-offset:2px}
+</style></head>
+<body>
+<div class="shell">
+<aside>
+ <div class="brand"><div class="logo">✦</div><div><b>ASTRA</b><small>PHYSIOLOGICAL MONITORING</small></div></div>
+ <div class="nl">ASTRA SPACE</div>
+ <button class="nav on" data-v="overview"><i>▦</i>Overview</button>
+ <button class="nav" data-v="crew"><i>♡</i>Crew Monitoring</button>
+ <button class="nav" data-v="alerts"><i>⚑</i>Medical Intelligence <em id="bdg" class="badge"></em></button>
+ <button class="nav" data-v="scen"><i>⇅</i>Scenario Simulation</button>
+ <button class="nav" data-v="history"><i>◷</i>Historical Data</button>
+ <div class="nl">ASTRA PLATFORM</div>
+ <button class="nav" data-v="beyond"><i>◇</i>Beyond Space</button>
+ <div class="nl">SYSTEM</div>
+ <button class="nav" data-v="sources"><i>❖</i>NASA Sources</button>
+ <button class="nav" data-v="settings"><i>⌘</i>Settings</button>
+ <div class="sb">MISSION STATUS<b id="sbs">● SYSTEM NOMINAL</b>Prototype · simulated data · v0.3</div>
+</aside>
+<main>
+<div class="dev"><span><b>ASTRA M-1</b>Physiological Monitor</span><span class="dm"><span><i class="led"></i>PWR</span><span><i class="led"></i>LINK</span><span><i class="led w"></i>SIM</span><span class="mono" id="clk"></span></span></div>
+<header class="top">
+ <div><div class="eb" id="eb"></div><h1 id="h1"></h1><div class="sub" id="sub"></div>
+ <svg class="ecg" viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" vector-effect="non-scaling-stroke" d="M0 15h40l6-12 8 24 6-12h30l6-9 8 18 6-9h50"/></svg></div>
+ <div class="acts"><button id="lang" type="button" title="Cambiar a español" aria-label="Language: English. Switch to Spanish"><span class="on">EN</span><span>ES</span></button><button class="pill" id="live" title="Pause / resume simulation">● SIMULATION LIVE</button><select id="cs" aria-label="Select crew member"></select></div>
+</header>
+<div class="bn" id="bn"></div>
+
+<section class="view on" id="v-overview">
+ <div class="g g3" id="sum"></div>
+ <div class="ct"><div><h2>CREW STATUS</h2><p>Select a crew member to inspect their measurements.</p></div></div>
+ <div class="g g3" id="roster"></div>
+ <div class="g g2">
+  <article class="card"><div class="ct"><div><h2>Selected crew · vital signs</h2><p>Latest simulated measurements</p></div><select id="mSel" aria-label="Chart metric"></select></div><div class="g g3" id="cards"></div></article>
+  <article class="card"><div class="ct"><div><h2>Assessment</h2><p>Preliminary rule-based status · simulated</p></div><span class="tag">DEMO</span></div><div id="stat"></div><div id="alMini"></div><button class="btn" data-v="alerts">VIEW EVENT LOG</button></article>
+ </div>
+ <details class="card" style="margin-bottom:14px"><summary>Trend chart and additional indicators</summary><div class="cw"><canvas id="cv"></canvas></div><div class="lg"><span id="leg"></span><span>Forecast is simulated, not validated</span></div><div id="rad"></div></details>
+ <details class="card"><summary>Mission context and data provenance</summary><div class="row"><span>Mission</span><strong>ORBITAL-01 · Day 018</strong></div><div class="row"><span>Environment</span><strong>Low Earth orbit</strong></div><div class="row"><span>Data</span><strong>SIMULATED · NASA reference BEDREST0543</strong></div><div id="ovFacts"></div><button class="btn" data-v="sources">OPEN SOURCE LIBRARY</button></details>
+</section>
+
+<section class="view" id="v-sources">
+ <div class="g g2"><article class="card"><div class="ct"><div><h2>Verified NASA facts</h2><p>Extracted from the linked documents · # = Master_References</p></div><span class="tag">9 FACTS</span></div><div id="facts"></div></article>
+ <article class="card"><div class="ct"><div><h2>BEDREST0543 · real dataset</h2><p>Only per-person dataset obtained and checked</p></div><span class="tag good">CHECKED</span></div><div id="bed"></div></article></div>
+ <article class="card"><div class="ct"><div><h2>Source library · 39 references</h2><p>Links from ASTRA_NASA_Research_Output.xlsx · FULL = read in full · PARTIAL = excerpt only · TO REVIEW = listed, not read yet</p></div><div class="acts" id="rc" style="flex-wrap:wrap"></div></div><div id="rl"></div></article>
+</section>
+
+<section class="view" id="v-history">
+ <article class="card" style="margin-bottom:14px"><div class="ct"><div><h2 id="hT">History</h2><p>SIMULATED DATA · daily averages vs individual baseline (dotted line)</p></div>
+  <div class="acts"><select id="hSel" aria-label="History metric"></select><button class="tag on" data-r="7">7D</button><button class="tag" data-r="14">14D</button><button class="tag" data-r="30">30D</button></div></div>
+  <div class="cw"><canvas id="hcv"></canvas></div></article>
+ <div class="g g3" id="hStats"></div>
+</section>
+
+<section class="view" id="v-crew">
+ <div class="g g2"><article class="card" id="cp"></article><article class="card"><div class="ct"><div><h2>Wellness radar</h2><p>Current vs reference zone</p></div></div><div id="rad2"></div></article></div>
+ <article class="card"><div class="ct"><div><h2>Baseline vs now</h2><p>Deviation from mission-start baseline</p></div></div><div id="bvn"></div></article><div class="eb" style="margin:18px 0 8px">PHYSIOLOGICAL OUTPUTS · 8 CHANNELS BY CLINICAL CATEGORY</div><div class="g g2" id="vit"></div>
+</section>
+
+<section class="view" id="v-alerts"><div id="intel"></div><article class="card">
+ <div class="ct"><div><h2>Event log · threshold crossings</h2><p>DEMO RULES · NASA publishes no official alert levels</p></div><div class="acts" id="flt"></div></div>
+ <div id="alAll"></div><div class="btns" style="margin-top:12px"><button class="btn" id="clr">CLEAR ALL</button></div></article></section>
+
+<section class="view" id="v-settings"><article class="card">
+ <div class="set"><div>Live simulation<small>Pause or resume telemetry updates</small></div><input type="checkbox" id="tLive" checked></div>
+ <div class="set"><div>Update interval<small>How often new packets arrive</small></div><select id="tSpd"><option value="2000">2 s</option><option value="5000" selected>5 s</option><option value="10000">10 s</option></select></div>
+ <div class="set"><div>Accent color<small>Display highlight</small></div><select id="tAcc"><option value="#1677a8">Clinical blue</option><option value="#0f8a7a">Teal</option><option value="#3979b8">Steel blue</option></select></div>
+ 
+ <div class="set"><div>Inject anomaly<small>Simulate a physiological spike for the selected astronaut</small></div><button class="btn" id="bAno">INJECT</button></div>
+ <div class="set"><div>Reset simulation<small>Restore baselines and alert log</small></div><button class="btn" id="bRst">RESET</button></div></article></section>
+
+<section class="view" id="v-scen">
+ <article class="card"><div class="ct"><div><h2>Hypothetical inputs</h2><p id="scSub"></p></div><span class="tag warn">SIMULATED</span></div>
+  <div class="btns" id="scPre" style="flex-wrap:wrap;margin-bottom:10px"></div><div class="g g2" id="scSl"></div>
+  <div class="btns"><button class="btn" id="scRst">RESET TO BASELINE</button></div></article>
+ <article class="card" style="margin-top:14px"><div class="ct"><div><h2>Resulting analysis</h2><p>PREDICTED SCENARIO · not a diagnosis, not validated</p></div><span id="scLv"></span></div><div id="scOut"></div></article>
+</section>
+<section class="view" id="v-beyond"></section>
+<div class="nt">⚠ PROTOTYPE NOTICE · Fictional, simulated values for demonstration only. Not connected to medical devices; no medical diagnosis or clinical decision support.</div>
+</main></div>
+<script>
+/* ===== ASTRA · selector de idioma EN / ES =====
+   La página se escribió en inglés. Este módulo traduce al español todo el texto visible
+   (también el que se genera dinámicamente) y vuelve al inglés con el mismo botón.
+   El texto original nunca se pierde: se guarda por nodo y se restaura al cambiar. */
+let LANG='en',TR=s=>s,i18nInit=()=>{};
+try{if(localStorage.getItem('astra-lang')==='es')LANG='es'}catch(e){}
+(()=>{
+const E={
+/* ---- barra lateral, cabecera del equipo ---- */
+"PHYSIOLOGICAL MONITORING":"MONITOREO FISIOLÓGICO",
+"ASTRA PLATFORM":"PLATAFORMA ASTRA",
+"Overview":"Resumen",
+"Crew Monitoring":"Monitoreo de la tripulación",
+"Medical Intelligence":"Inteligencia médica",
+"Scenario Simulation":"Simulación de escenarios",
+"Historical Data":"Datos históricos",
+"Beyond Space":"Más allá del espacio",
+"SYSTEM":"SISTEMA",
+"NASA Sources":"Fuentes de la NASA",
+"Settings":"Configuración",
+"MISSION STATUS":"ESTADO DE LA MISIÓN",
+"SYSTEM NOMINAL":"SISTEMA NOMINAL",
+"CREW MONITORING":"MONITOREO DE LA TRIPULACIÓN",
+"Prototype · simulated data · v0.3":"Prototipo · datos simulados · v0.3",
+"Physiological Monitor":"Monitor fisiológico",
+"PWR":"ENERGÍA","LINK":"ENLACE",
+"SIMULATION LIVE":"SIMULACIÓN EN VIVO",
+"SIMULATION PAUSED":"SIMULACIÓN EN PAUSA",
+"Pause / resume simulation":"Pausar / reanudar simulación",
+"Select crew member":"Seleccionar tripulante",
+
+/* ---- títulos de cada vista ---- */
+"ASTRA SPACE / CREW OVERVIEW":"ASTRA SPACE / RESUMEN DE LA TRIPULACIÓN",
+"Crew overview":"Resumen de la tripulación",
+"Simulated crew telemetry · NASA historical reference ranges":"Telemetría simulada de la tripulación · rangos históricos de referencia de la NASA",
+"ASTRA SPACE / CREW MONITORING":"ASTRA SPACE / MONITOREO DE LA TRIPULACIÓN",
+"Crew monitoring":"Monitoreo de la tripulación",
+"Individual baseline, status and 8 physiological outputs by clinical category":"Línea base individual, estado y 8 salidas fisiológicas por categoría clínica",
+"ASTRA SPACE / MEDICAL INTELLIGENCE":"ASTRA SPACE / INTELIGENCIA MÉDICA",
+"Medical Intelligence & Risk Analysis":"Inteligencia médica y análisis de riesgo",
+"Baseline-aware analysis with explainable alert levels · not a diagnosis":"Análisis basado en la línea base, con niveles de alerta explicables · no es un diagnóstico",
+"ASTRA SPACE / SCENARIO SIMULATION":"ASTRA SPACE / SIMULACIÓN DE ESCENARIOS",
+"Scenario simulation":"Simulación de escenarios",
+"Change hypothetical inputs and watch the analysis respond · SIMULATED":"Cambia las entradas hipotéticas y observa cómo responde el análisis · SIMULADO",
+"ASTRA SPACE / HISTORICAL DATA":"ASTRA SPACE / DATOS HISTÓRICOS",
+"Historical data":"Datos históricos",
+"Trends against each astronaut’s own baseline · SIMULATED daily averages":"Tendencias frente a la línea base de cada astronauta · promedios diarios SIMULADOS",
+"SYSTEM / CONFIGURATION":"SISTEMA / CONFIGURACIÓN",
+"System settings":"Configuración del sistema",
+"Simulation, display and calibration controls":"Controles de simulación, pantalla y calibración",
+"NASA REFERENCES / DATA PROVENANCE":"REFERENCIAS DE LA NASA / PROCEDENCIA DE LOS DATOS",
+"NASA sources":"Fuentes de la NASA",
+"39 linked references, verified facts and the real BEDREST0543 dataset":"39 referencias enlazadas, datos verificados y el conjunto de datos real BEDREST0543",
+"ASTRA PLATFORM / BEYOND SPACE":"PLATAFORMA ASTRA / MÁS ALLÁ DEL ESPACIO",
+"Beyond space: ASTRA for Peru":"Más allá del espacio: ASTRA para el Perú",
+"From astronaut monitoring to accessible care · concept, not an operational application":"Del monitoreo de astronautas a una atención accesible · concepto, no una aplicación operativa",
+
+/* ---- tripulación, roles, métricas ---- */
+"Commander":"Comandante","Flight Engineer":"Ingeniero de vuelo","Mission Specialist":"Especialista de misión",
+"Heart Rate":"Frecuencia cardíaca",
+"Heart Rate Variability":"Variabilidad de la frecuencia cardíaca",
+"Blood Oxygen Saturation":"Saturación de oxígeno en sangre",
+"Respiratory Rate":"Frecuencia respiratoria",
+"Blood Pressure":"Presión arterial",
+"Body Temperature":"Temperatura corporal",
+"Sleep Quality & Duration":"Calidad y duración del sueño",
+"Physical Activity & Exercise Load":"Actividad física y carga de ejercicio",
+"HR":"FC","HRV":"VFC","RR":"FR","BP":"PA","Temp":"Temp.","Sleep":"Sueño","Load":"Carga",
+"br/min":"resp/min","min/day":"min/día",
+
+/* ---- estados y niveles ---- */
+"Within range":"Dentro del rango","WITHIN RANGE":"DENTRO DEL RANGO",
+"Watch":"Vigilar","WATCH":"VIGILAR",
+"Alert":"Alerta","ALERT":"ALERTA",
+"GREEN":"VERDE","YELLOW":"AMARILLO","ORANGE":"NARANJA","RED":"ROJO",
+"STABLE":"ESTABLE","MONITORING":"VIGILANCIA","ELEVATED CONCERN":"PREOCUPACIÓN ELEVADA","CRITICAL":"CRÍTICO",
+"SIMULATED":"SIMULADO","SIMULATED DATA":"DATOS SIMULADOS",
+"SIMULATED DATA · DERIVED INDICATOR":"DATOS SIMULADOS · INDICADOR DERIVADO",
+"SIMULATED DATA · diastolic is a DERIVED INDICATOR":"DATOS SIMULADOS · la diastólica es un INDICADOR DERIVADO",
+"MEASURED THRESHOLD":"UMBRAL MEDIDO","DETECTED ANOMALY":"ANOMALÍA DETECTADA","PERSISTENT":"PERSISTENTE",
+
+/* ---- resumen ---- */
+"CREW MEMBERS":"TRIPULANTES","ACTIVE ALERTS":"ALERTAS ACTIVAS","NEED ATTENTION":"REQUIEREN ATENCIÓN","DATA SOURCE":"FUENTE DE DATOS",
+"CREW STATUS":"ESTADO DE LA TRIPULACIÓN",
+"Select a crew member to inspect their measurements.":"Selecciona un tripulante para revisar sus mediciones.",
+"MONITOR":"MONITOREAR","PROFILE":"PERFIL",
+"No active alerts":"Sin alertas activas",
+"Selected crew · vital signs":"Tripulante seleccionado · signos vitales",
+"Latest simulated measurements":"Últimas mediciones simuladas",
+"Chart metric":"Métrica del gráfico",
+"Assessment":"Evaluación",
+"Preliminary rule-based status · simulated":"Estado preliminar basado en reglas · simulado",
+"VIEW EVENT LOG":"VER REGISTRO DE EVENTOS",
+"ASTRA risk level":"Nivel de riesgo ASTRA",
+"No significant deviations detected":"No se detectaron desviaciones significativas",
+"Minor deviations — monitor closely":"Desviaciones leves — monitorear de cerca",
+"Out-of-range indicator — review recommended":"Indicador fuera de rango — se recomienda revisar",
+"Respiratory":"Respiratorio","Thermoregulation":"Termorregulación","Sleep & recovery":"Sueño y recuperación","Physical conditioning":"Condición física",
+"Stress proxy (sleep, HR, HRV)":"Indicador de estrés (sueño, FC, VFC)",
+"Circadian window 1–7 AM":"Ventana circadiana de 1 a 7 a. m.",
+"Avoid critical tasks":"Evitar tareas críticas","Clear":"Libre",
+"Last data packet":"Último paquete de datos","Just now":"Justo ahora",
+"Trend chart and additional indicators":"Gráfico de tendencia e indicadores adicionales",
+"Forecast is simulated, not validated":"El pronóstico es simulado, no validado",
+"Mission context and data provenance":"Contexto de la misión y procedencia de los datos",
+"Mission":"Misión","Environment":"Entorno","Low Earth orbit":"Órbita terrestre baja","Data":"Datos",
+"SIMULATED · NASA reference BEDREST0543":"SIMULADOS · referencia NASA BEDREST0543",
+"OPEN SOURCE LIBRARY":"ABRIR BIBLIOTECA DE FUENTES",
+
+/* ---- vitales (tarjetas de cada métrica) ---- */
+"PHYSIOLOGICAL OUTPUTS · 8 CHANNELS BY CLINICAL CATEGORY":"SALIDAS FISIOLÓGICAS · 8 CANALES POR CATEGORÍA CLÍNICA",
+"CARDIOVASCULAR":"CARDIOVASCULAR","RESPIRATORY":"RESPIRATORIO","THERMOREGULATION":"TERMORREGULACIÓN","RECOVERY":"RECUPERACIÓN","PHYSICAL PERFORMANCE":"RENDIMIENTO FÍSICO",
+"PREDICTED SCENARIO · +15 min trend":"ESCENARIO PREDICHO · tendencia a +15 min",
+"HISTORY ›":"HISTORIAL ›","LIVE CHART ›":"GRÁFICO EN VIVO ›",
+
+/* ---- perfil de tripulante ---- */
+"Age":"Edad","Height / weight":"Estatura / peso","Readiness index":"Índice de preparación","Status":"Estado",
+"Wellness radar":"Radar de bienestar","Current vs reference zone":"Actual vs. zona de referencia",
+"Baseline vs now":"Línea base vs. ahora",
+"Deviation from mission-start baseline":"Desviación respecto a la línea base al inicio de la misión",
+
+/* ---- historial ---- */
+"History":"Historial",
+"SIMULATED DATA · daily averages vs individual baseline (dotted line)":"DATOS SIMULADOS · promedios diarios vs. línea base individual (línea punteada)",
+"History metric":"Métrica del historial",
+"MIN":"MÍN","AVERAGE":"PROMEDIO","MAX":"MÁX","Today":"Hoy","baseline":"línea base",
+
+/* ---- inteligencia médica ---- */
+"What changed":"Qué cambió","Observed":"Observado","Vs baseline":"Vs. línea base","Also involved":"También involucrado","Why flagged":"Por qué se marcó","Investigate":"Investigar",
+"None: isolated change":"Ninguno: cambio aislado",
+"last 4 readings stay at least 1.5 SD from baseline":"las últimas 4 lecturas se mantienen al menos a 1.5 DE de la línea base",
+"critical limit crossed (illustrative)":"se superó el límite crítico (ilustrativo)",
+"No significant deviation from baseline identified.":"No se identificó ninguna desviación significativa respecto a la línea base.",
+"Method and assumptions":"Método y supuestos",
+"How alert levels are assigned":"Cómo se asignan los niveles de alerta",
+"NOT A DIAGNOSIS":"NO ES UN DIAGNÓSTICO",
+"MEASURED THRESHOLD: value outside the fixed reference range used here. Ranges are generic adult ranges plus NASA figures where available, not validated per astronaut.":"UMBRAL MEDIDO: valor fuera del rango de referencia fijo que se usa aquí. Los rangos son rangos genéricos para adultos más cifras de la NASA cuando existen; no están validados para cada astronauta.",
+"DETECTED ANOMALY: value at least 2.5 standard deviations from the astronaut’s own 30-day baseline (SIMULATED history).":"ANOMALÍA DETECTADA: valor a al menos 2.5 desviaciones estándar de la línea base de 30 días del propio astronauta (historial SIMULADO).",
+"PERSISTENT: the mean of the last 4 readings stays at least 1.5 standard deviations from baseline.":"PERSISTENTE: el promedio de las últimas 4 lecturas se mantiene a al menos 1.5 desviaciones estándar de la línea base.",
+"Yellow: one flagged measure. Orange: two or more flagged together, or one persistent. Red: four or more together, or an illustrative critical limit (SpO₂ below 90%, HR above 130 or below 40, temperature above 38.5 °C).":"Amarillo: una medida marcada. Naranja: dos o más marcadas a la vez, o una persistente. Rojo: cuatro o más a la vez, o un límite crítico ilustrativo (SpO₂ por debajo de 90%, FC por encima de 130 o por debajo de 40, temperatura por encima de 38.5 °C).",
+"All values are SIMULATED DATA. Cut-offs are assumptions pending clinical validation.":"Todos los valores son DATOS SIMULADOS. Los puntos de corte son supuestos pendientes de validación clínica.",
+"Event log · threshold crossings":"Registro de eventos · cruces de umbral",
+"DEMO RULES · NASA publishes no official alert levels":"REGLAS DE DEMOSTRACIÓN · la NASA no publica niveles de alerta oficiales",
+"ALL":"TODOS","WARNING":"ADVERTENCIA","INFO":"INFO",
+"CLEAR ALL":"BORRAR TODO",
+"No events in this category.":"No hay eventos en esta categoría.",
+"Dismiss":"Descartar",
+"Telemetry connection stable":"Conexión de telemetría estable",
+"Data stream operating normally":"Flujo de datos funcionando con normalidad",
+"Routine health check completed":"Chequeo de salud de rutina completado",
+"Monitored indicators reviewed":"Indicadores monitoreados revisados",
+"sensor contact, recent exertion, stress, hydration":"contacto del sensor, esfuerzo reciente, estrés, hidratación",
+"recovery, sleep debt, recent workload":"recuperación, deuda de sueño, carga de trabajo reciente",
+"sensor fit first, then cabin O₂/CO₂ and breathing":"primero el ajuste del sensor; luego el O₂/CO₂ de la cabina y la respiración",
+"CO₂ level, exertion, signal quality":"nivel de CO₂, esfuerzo, calidad de la señal",
+"cuff and posture, hydration, repeat in 10 min":"manguito y postura, hidratación, repetir en 10 min",
+"cabin thermal control, exertion, hydration":"control térmico de la cabina, esfuerzo, hidratación",
+"sleep schedule, light, noise, cabin conditions":"horario de sueño, luz, ruido, condiciones de la cabina",
+"exercise-plan adherence and equipment logs":"cumplimiento del plan de ejercicio y registros del equipo",
+
+/* ---- configuración ---- */
+"Live simulation":"Simulación en vivo","Pause or resume telemetry updates":"Pausar o reanudar las actualizaciones de telemetría",
+"Update interval":"Intervalo de actualización","How often new packets arrive":"Con qué frecuencia llegan paquetes nuevos",
+"Accent color":"Color de acento","Display highlight":"Resalte de la pantalla",
+"Clinical blue":"Azul clínico","Teal":"Verde azulado","Steel blue":"Azul acero",
+"Inject anomaly":"Inyectar anomalía","Simulate a physiological spike for the selected astronaut":"Simular un pico fisiológico en el astronauta seleccionado","INJECT":"INYECTAR",
+"Reset simulation":"Reiniciar simulación","Restore baselines and alert log":"Restaurar las líneas base y el registro de alertas","RESET":"REINICIAR",
+
+/* ---- simulación de escenarios ---- */
+"Hypothetical inputs":"Entradas hipotéticas",
+"baseline vs hypothetical inputs":"línea base vs. entradas hipotéticas",
+"Low SpO₂":"SpO₂ baja","High HR":"FC alta","Short sleep":"Sueño corto","Less activity":"Menos actividad","Multi-system":"Multisistémico",
+"RESET TO BASELINE":"VOLVER A LA LÍNEA BASE",
+"Resulting analysis":"Análisis resultante",
+"PREDICTED SCENARIO · not a diagnosis, not validated":"ESCENARIO PREDICHO · no es un diagnóstico, no validado",
+"Measure":"Medida","Baseline":"Línea base","Hypothetical":"Hipotético","Change":"Cambio",
+"Potential physiological trends · PREDICTED SCENARIO":"Posibles tendencias fisiológicas · ESCENARIO PREDICHO",
+"Lower oxygen saturation with a changed breathing rate: a team would check sensor fit first, then oxygenation.":"Menor saturación de oxígeno con una frecuencia respiratoria alterada: un equipo revisaría primero el ajuste del sensor y luego la oxigenación.",
+"Higher heart rate with lower variability: a pattern linked with physiological strain or incomplete recovery.":"Mayor frecuencia cardíaca con menor variabilidad: un patrón asociado con estrés fisiológico o recuperación incompleta.",
+"Short sleep with lower variability: recovery may be limiting cardiovascular measures.":"Sueño corto con menor variabilidad: la recuperación podría estar limitando las medidas cardiovasculares.",
+"Temperature and heart rate rising together: possible thermal or exertional load.":"Temperatura y frecuencia cardíaca subiendo a la vez: posible carga térmica o por esfuerzo.",
+"Pattern descriptions only. Not a diagnosis, not validated.":"Solo descripciones de patrones. No es un diagnóstico, no validado.",
+"No significant deviation from this astronaut’s baseline.":"Sin desviación significativa respecto a la línea base de este astronauta.",
+
+/* ---- fuentes NASA ---- */
+"Verified NASA facts":"Datos verificados de la NASA",
+"Extracted from the linked documents · # = Master_References":"Extraídos de los documentos enlazados · # = Master_References",
+"9 FACTS":"9 DATOS",
+"NASA recommends an 8.5 h sleep period; crews average only 6–6.5 h (≈0.3 h/day deficit).":"La NASA recomienda un período de sueño de 8.5 h; las tripulaciones duermen en promedio solo 6–6.5 h (déficit de ≈0.3 h/día).",
+"Critical tasks should avoid the circadian nadir, about 1–7 AM relative to normal sleep.":"Las tareas críticas deben evitar el punto más bajo del ritmo circadiano, de 1 a 7 a. m. aproximadamente respecto al sueño normal.",
+"ISS exercise HR: treadmill averages 131 bpm (peak 162); bike 135 bpm (peak 163), ~26–27 min per session.":"FC durante el ejercicio en la EEI: la cinta de correr promedia 131 bpm (pico 162); la bicicleta, 135 bpm (pico 163), ~26–27 min por sesión.",
+"Crews average ~2 h/day of exercise on ARED, T2 treadmill and CEVIS bike; ~600 min/week were logged in ISS data.":"Las tripulaciones hacen en promedio ~2 h/día de ejercicio en el ARED, la cinta T2 y la bicicleta CEVIS; en los datos de la EEI se registraron ~600 min/semana.",
+"Prescription is 70–100% of VO₂peak (bike) or HRmax (treadmill); aerobic capacity must stay ≥80% of pre-mission.":"La prescripción es de 70–100% del VO₂pico (bicicleta) o de la FCmáx (cinta); la capacidad aeróbica debe mantenerse en ≥80% del nivel previo a la misión.",
+"After ~178 days crews lost about 7% of VO₂peak on average; 12–21% fell below the −20% requirement.":"Tras ~178 días, las tripulaciones perdieron en promedio cerca del 7% del VO₂pico; entre el 12% y el 21% cayó por debajo del requisito de −20%.",
+"Bed rest without exercise cuts aerobic capacity about 20% by day 30; exercise preserved it in a 70-day study.":"El reposo en cama sin ejercicio reduce la capacidad aeróbica cerca de un 20% al día 30; el ejercicio la preservó en un estudio de 70 días.",
+"Seven days at 6 h of sleep can impair performance like 24–36 h awake.":"Siete días durmiendo 6 h pueden deteriorar el rendimiento como si se llevaran 24–36 h sin dormir.",
+"ISS cabin runs 18–27 °C and 30–65% humidity; noise, light and CO₂ also disturb sleep.":"La cabina de la EEI opera a 18–27 °C y 30–65% de humedad; el ruido, la luz y el CO₂ también perturban el sueño.",
+"BEDREST0543 · real dataset":"BEDREST0543 · conjunto de datos real",
+"Only per-person dataset obtained and checked":"Único conjunto de datos por persona que se obtuvo y verificó",
+"CHECKED":"VERIFICADO",
+"Package":"Paquete","15 CSV files · md5 15/15 match":"15 archivos CSV · md5 coincide 15/15",
+"Subjects":"Sujetos","32 codes · dosing test 30 (20 M, 10 F)":"32 códigos · prueba de dosificación 30 (20 H, 10 M)",
+"Rows":"Filas","2,425 across all files":"2,425 en todos los archivos",
+"Bed-rest days":"Días de reposo en cama","0–64 hormones · 0–90 vascular · −5…88 dosing":"0–64 hormonas · 0–90 vascular · −5…88 dosificación",
+"median 14.3 µg/dl · range 2.8–34.5":"mediana 14.3 µg/dl · rango 2.8–34.5",
+"median 29.1 pg/ml · range 7.4–343":"mediana 29.1 pg/ml · rango 7.4–343",
+"Limits":"Límites","No sleep, activity, SpO₂, temperature or daily HR; cardiovascular units not stated in file":"Sin sueño, actividad, SpO₂, temperatura ni FC diaria; el archivo no indica las unidades cardiovasculares",
+"Rule":"Regla","Label as bed-rest data (2005–2010), never as current astronaut data":"Etiquétalo como datos de reposo en cama (2005–2010), nunca como datos actuales de astronautas",
+"Source library · 39 references":"Biblioteca de fuentes · 39 referencias",
+"Links from ASTRA_NASA_Research_Output.xlsx · FULL = read in full · PARTIAL = excerpt only · TO REVIEW = listed, not read yet":"Enlaces de ASTRA_NASA_Research_Output.xlsx · COMPLETO = leído completo · PARCIAL = solo un extracto · POR REVISAR = listado, aún sin leer",
+"FULL":"COMPLETO","PARTIAL":"PARCIAL","TO REVIEW":"POR REVISAR",
+"open ›":"abrir ›",
+"DATA PORTALS":"PORTALES DE DATOS","VITAL SIGNS":"SIGNOS VITALES","EXERCISE":"EJERCICIO","SLEEP & CIRCADIAN":"SUEÑO Y CIRCADIANO","BEHAVIORAL HEALTH":"SALUD CONDUCTUAL","REPORTS & EXPERIMENTS":"INFORMES Y EXPERIMENTOS",
+/* referencias (títulos) */
+"NASA Life Sciences Portal (LSDA)":"Portal de Ciencias de la Vida de la NASA (LSDA)",
+"Life Sciences Portal overview":"Descripción general del Portal de Ciencias de la Vida",
+"NLSP documents search":"Búsqueda de documentos del NLSP",
+"Exercise & Nutrition Countermeasure record":"Registro de contramedidas de ejercicio y nutrición",
+"Annual Medical Examinations":"Exámenes médicos anuales",
+"Publications from LSAH analyses":"Publicaciones de los análisis del LSAH",
+"Heart Rate Monitoring (MR019L)":"Monitoreo de la frecuencia cardíaca (MR019L)",
+"24 h ambulatory ECG":"ECG ambulatorio de 24 h",
+"Sleep & SpO₂":"Sueño y SpO₂",
+"Activity & sleep in isolation":"Actividad y sueño en aislamiento",
+"Deconditioning & exercise prescription":"Desacondicionamiento y prescripción de ejercicio",
+"Astronaut Exercise (ISS)":"Ejercicio de los astronautas (EEI)",
+"Exercise physiology & countermeasures":"Fisiología del ejercicio y contramedidas",
+"OCHMO-TB-031 Exercise Overview":"OCHMO-TB-031 Panorama del ejercicio",
+"Real story: astronaut health care":"La historia real: la atención médica de los astronautas",
+"Muscle & exercise studies (2025)":"Estudios de músculo y ejercicio (2025)",
+"Station exercise & physics research":"Investigación de ejercicio y física en la estación",
+"Seven ways astronauts improve sleep":"Siete maneras en que los astronautas mejoran su sueño",
+"OCHMO-TB-041 Sleep Accommodations":"OCHMO-TB-041 Acondicionamiento para el sueño",
+"6.0 Medical Operations":"6.0 Operaciones médicas",
+"Living and Working in Space":"Vivir y trabajar en el espacio",
+"Adverse cognitive/behavioral risk":"Riesgo cognitivo/conductual adverso",
+"Human factors & behavioral risks":"Factores humanos y riesgos conductuales",
+"OCHMO-TB-014 Behavioral mishaps":"OCHMO-TB-014 Incidentes conductuales",
+"2016 HRP Annual Report":"Informe anual 2016 del HRP",
+"Human Research Program":"Programa de Investigación Humana",
+"About HRP":"Acerca del HRP",
+"Risks of human spaceflight":"Riesgos del vuelo espacial humano",
+"Human Health Countermeasures":"Contramedidas para la salud humana",
+"About Human Health Countermeasures":"Acerca de las contramedidas para la salud humana",
+"HHC spaceflight risks":"Riesgos del vuelo espacial según el HHC",
+"HERO opportunities":"Oportunidades HERO",
+"Fundamentals of human health":"Fundamentos de la salud humana",
+"HRP: five spaceflight hazards":"HRP: cinco peligros del vuelo espacial",
+"HRP Overview (NTRS)":"Panorama del HRP (NTRS)",
+"Human Research Program (NTRS 2016)":"Programa de Investigación Humana (NTRS 2016)",
+"HRP Overview: Life Sciences in Space":"Panorama del HRP: ciencias de la vida en el espacio",
+"Autonomic dysfunction":"Disfunción autonómica",
+/* datos históricos de la NASA (BEDREST0543) y referencias por métrica */
+"BEDREST0543 “HR last dinamap” median 70 (38–148), 780 tests, 30 subjects":"BEDREST0543 “HR last dinamap”: mediana 70 (38–148), 780 pruebas, 30 sujetos",
+"BEDREST0543 mean RR interval median 841 (403–1563); HRV is not stored, derive it from RR":"BEDREST0543 intervalo RR medio: mediana 841 (403–1563); la VFC no se almacena, se deriva del RR",
+"Data unavailable (not in BEDREST0543)":"Datos no disponibles (no están en BEDREST0543)",
+"Data unavailable (the file’s “RR” is the RR interval, not breathing)":"Datos no disponibles (el “RR” del archivo es el intervalo RR, no la respiración)",
+"BEDREST0543 last dinamap SBP median 112 (66–196), DBP 63 (36–104)":"BEDREST0543 último dinamap: PAS mediana 112 (66–196), PAD 63 (36–104)",
+"ISS exercise HR: T2 treadmill avg 131 / peak 162 bpm; CEVIS bike avg 135 / peak 163 [#14]":"FC en ejercicio en la EEI: cinta T2 prom. 131 / pico 162 bpm; bicicleta CEVIS prom. 135 / pico 163 [#14]",
+"ECG protocols: HR Monitoring MR019L [#7], 24 h ambulatory ECG [#8] (links not opened yet)":"Protocolos de ECG: monitoreo de FC MR019L [#7], ECG ambulatorio de 24 h [#8] (enlaces aún sin abrir)",
+"Exp. 465 and 8265 cover sleep + SpO₂ per task doc (to verify) [#9, #40]":"Los Exp. 465 y 8265 cubren sueño + SpO₂ según el documento de la tarea (por verificar) [#9, #40]",
+"Exp. 465 lists breathing during sleep per task doc (to verify) [#9]":"El Exp. 465 incluye la respiración durante el sueño según el documento de la tarea (por verificar) [#9]",
+"Orthostatic stress: Exp. 1289 (to verify) [#38]; BEDREST0543 PE/SNP dosing test":"Estrés ortostático: Exp. 1289 (por verificar) [#38]; prueba de dosificación PE/SNP de BEDREST0543",
+"ISS cabin 18–27 °C and 30–65% humidity; both affect sleep [#19]":"Cabina de la EEI: 18–27 °C y 30–65% de humedad; ambas afectan el sueño [#19]",
+"NASA plans an 8.5 h sleep period; crews average 6–6.5 h, a ≈0.3 h/day deficit [#19, #20]":"La NASA planifica un período de sueño de 8.5 h; las tripulaciones promedian 6–6.5 h, un déficit de ≈0.3 h/día [#19, #20]",
+"ISS crews average ~2 h/day (≈600 min/week logged); 70–100% of VO₂peak or HRmax [#12, #14]":"Las tripulaciones de la EEI promedian ~2 h/día (≈600 min/semana registrados); 70–100% del VO₂pico o de la FCmáx [#12, #14]",
+
+/* ---- más allá del espacio ---- */
+"PERÚ · CONCEPT, NOT A DEPLOYED MEDICAL DEVICE":"PERÚ · CONCEPTO, NO ES UN DISPOSITIVO MÉDICO EN OPERACIÓN",
+"Health monitoring for every corner of Peru":"Monitoreo de la salud para cada rincón del Perú",
+"Born from space medicine, ASTRA could bring simple, affordable early warning to people who work and live far from care, from Andean towns to Amazon rivers.":"Nacida de la medicina espacial, ASTRA podría llevar una alerta temprana simple y asequible a quienes trabajan y viven lejos de la atención médica, desde los pueblos andinos hasta los ríos amazónicos.",
+"Peru needs care that is…":"El Perú necesita una atención que sea…",
+"Accessible":"Accesible","Reaches Andean and Amazon communities, not only big-city hospitals.":"Llega a las comunidades andinas y amazónicas, no solo a los hospitales de las grandes ciudades.",
+"Efficient":"Eficiente","One screen lets a small team watch many people and act on what matters first.":"Una sola pantalla permite que un equipo pequeño vigile a muchas personas y actúe primero en lo que más importa.",
+"Innovative":"Innovadora","Personal baselines and explainable alerts on low-cost hardware.":"Líneas base personales y alertas explicables en hardware de bajo costo.",
+"The context: a long, varied territory, several separate health systems (MINSA, EsSalud, armed forces and police, private) and some communities hours or days from a hospital.":"El contexto: un territorio extenso y variado, varios sistemas de salud separados (MINSA, EsSalud, fuerzas armadas y policía, privados) y algunas comunidades a horas o días de un hospital.",
+"Who ASTRA could serve":"A quiénes podría servir ASTRA",
+"Hospitals and health posts":"Hospitales y postas médicas","Follow several patients from one screen and catch decline early.":"Seguir a varios pacientes desde una sola pantalla y detectar a tiempo el deterioro.",
+"Firefighters (Bomberos)":"Bomberos","Heat and exertion strain, compared with each person’s own baseline.":"Estrés por calor y esfuerzo, comparado con la línea base de cada persona.",
+"Police (PNP)":"Policía (PNP)","Long shifts and tense operations: spot strain before it becomes injury.":"Turnos largos y operativos tensos: detectar el desgaste antes de que se convierta en lesión.",
+"Armed forces":"Fuerzas armadas","Training and deployments in jungle, desert and high altitude.":"Entrenamientos y despliegues en selva, desierto y gran altitud.",
+"Research teams":"Equipos de investigación","Altitude and Amazon studies with consistent, comparable data.":"Estudios de altura y de la Amazonía con datos consistentes y comparables.",
+"Rescue and civil defense":"Rescate y defensa civil","Teams working far from care during quakes, floods and landslides.":"Equipos que trabajan lejos de la atención médica durante sismos, inundaciones y huaicos.",
+"High-altitude workers":"Trabajadores en altura","Mining and mountain crews, where low oxygen and poor sleep are daily risks.":"Cuadrillas mineras y de montaña, donde el poco oxígeno y el mal sueño son riesgos diarios.",
+"Remote communities":"Comunidades remotas","A local health promoter monitors; a doctor far away sees the alerts.":"Un promotor de salud local monitorea; un médico lejano ve las alertas.",
+"One platform, three parts":"Una plataforma, tres partes",
+"The shared engine: baselines, anomaly detection, risk analysis, explainable alerts.":"El motor compartido: líneas base, detección de anomalías, análisis de riesgo, alertas explicables.",
+"FOUNDATION":"BASE",
+"Working prototype for astronaut monitoring, on simulated data.":"Prototipo funcional para el monitoreo de astronautas, con datos simulados.",
+"PROTOTYPE":"PROTOTIPO",
+"The same engine adapted to Peruvian hospitals and field teams.":"El mismo motor adaptado a hospitales peruanos y equipos de campo.",
+"PROPOSED · NOT DEPLOYED":"PROPUESTO · NO IMPLEMENTADO",
+"ASTRA BAND · minimal hardware, meaningful monitoring":"ASTRA BAND · hardware mínimo, monitoreo con sentido",
+"A screen-free wristband concept for essential measurements":"Concepto de pulsera sin pantalla para las mediciones esenciales",
+"CONCEPT · FUTURE DEVELOPMENT":"CONCEPTO · DESARROLLO FUTURO","CONCEPT":"CONCEPTO",
+"Measures":"Mide","Heart rate, SpO₂ estimate, skin temperature":"Frecuencia cardíaca, estimación de SpO₂, temperatura de la piel",
+"Left out on purpose":"Excluido a propósito","Touchscreen, GPS, cellular, speakers":"Pantalla táctil, GPS, red celular, altavoces",
+"Low cost by design":"Bajo costo por diseño","Reusable module, replaceable strap, potential local assembly":"Módulo reutilizable, correa reemplazable, posible ensamblaje local",
+"Honest limits: SpO₂ needs sensor validation, skin temperature is not core temperature, blood pressure is not claimed and no cost figure is given.":"Límites honestos: la SpO₂ requiere validar el sensor, la temperatura de la piel no es la temperatura central, no se afirma medir la presión arterial y no se da ninguna cifra de costo.",
+"Assembled: module snaps into the strap":"Ensamblado: el módulo encaja en la correa",
+"Module housing":"Carcasa del módulo","Rechargeable battery":"Batería recargable",
+"MCU + BLE + signal electronics":"MCU + BLE + electrónica de señal",
+"Skin temperature sensor":"Sensor de temperatura de la piel",
+"Optical PPG sensor (skin side)":"Sensor óptico PPG (lado piel)",
+"Replaceable silicone or TPU strap":"Correa reemplazable de silicona o TPU",
+"Conceptual exploded view of a screen-free wristband":"Vista explosionada conceptual de una pulsera sin pantalla",
+"A heartbeat line that turns into the Andes skyline":"Una línea de latidos que se convierte en la silueta de los Andes",
+"How it works":"Cómo funciona",
+"Wristband":"Pulsera","Senses pulse, SpO₂ estimate and skin temperature":"Detecta el pulso, estima la SpO₂ y mide la temperatura de la piel",
+"Phone or gateway":"Teléfono o puerta de enlace","Works offline and syncs when the signal returns":"Funciona sin conexión y sincroniza cuando vuelve la señal",
+"Baselines, anomaly detection, explainable alerts":"Líneas base, detección de anomalías, alertas explicables",
+"Team dashboard":"Panel del equipo","One view for the whole team":"Una sola vista para todo el equipo",
+"Roadmap":"Hoja de ruta",
+"Simulated data, crew monitoring, risk analysis":"Datos simulados, monitoreo de la tripulación, análisis de riesgo",
+"Sensors, prototype hardware, multi-user and offline transmission":"Sensores, hardware de prototipo, multiusuario y transmisión sin conexión",
+"Validation and pilots":"Validación y pilotos",
+"Sensor validation, clinical testing, privacy review (Ley 29733), pilots in Peruvian settings":"Validación de sensores, pruebas clínicas, revisión de privacidad (Ley 29733), pilotos en entornos peruanos",
+"No completion dates are given. Later stages are not yet accomplished.":"No se indican fechas de finalización. Las etapas posteriores aún no se han logrado.",
+"“Technology developed to protect human life beyond Earth can inspire new ways to protect human life on Earth.”":"“La tecnología desarrollada para proteger la vida humana más allá de la Tierra puede inspirar nuevas formas de proteger la vida humana en la Tierra.”",
+"PROTOTYPE NOTICE · Fictional, simulated values for demonstration only. Not connected to medical devices; no medical diagnosis or clinical decision support.":"AVISO DE PROTOTIPO · Valores ficticios y simulados, solo para demostración. No está conectado a dispositivos médicos; no ofrece diagnóstico médico ni apoyo a decisiones clínicas."
+};
+const MAP=new Map(Object.entries(E));
+/* variantes en mayúsculas de los nombres de métricas (las tarjetas los muestran en mayúsculas) */
+["Heart Rate","Heart Rate Variability","Blood Oxygen Saturation","Respiratory Rate","Blood Pressure","Body Temperature","Sleep Quality & Duration","Physical Activity & Exercise Load"]
+ .forEach(k=>MAP.set(k.toUpperCase(),E[k].toUpperCase()));
+const ABBR=new Map([["HR","FC"],["HRV","VFC"],["RR","FR"],["BP","PA"],["Temp","Temp."],["Sleep","Sueño"],["Load","Carga"],["SpO₂","SpO₂"]]);
+const fixTime=t=>t.replace(/\s?AM\b/i,' a. m.').replace(/\s?PM\b/i,' p. m.');
+const U=s=>s.replace(/br\/min/g,'resp/min').replace(/min\/day/g,'min/día');
+const below=w=>w==='below'?'debajo':'encima';
+
+/* Frases con datos variables: [patrón, función(coincidencia, traductor)] */
+const RULES=[
+ [/^⚠ BIO-ALERT · (.+?): (.*) outside reference range$/,(m,T)=>`⚠ BIOALERTA · ${m[1]}: ${T(m[2])} fuera del rango de referencia`],
+ [/^(\d+) active alert\(s\): (.+)$/,(m,T)=>`${m[1]} alerta(s) activa(s): ${T(m[2])}`],
+ [/^(.+?): (.+) (out of range|outside baseline)$/,(m,T)=>`${m[1]}: ${T(m[2])} ${m[3]==='out of range'?'fuera de rango':'fuera de su línea base'}`],
+ [/^Reading ([^·]+)$/,m=>`Lectura ${m[1]}`],
+ [/^reference ([\d.]+)–([\d.]+)(?: (.+))?$/,m=>`referencia ${m[1]}–${m[2]}${m[3]?' '+m[3]:''}`],
+ [/^ref ([\d.]+)–([\d.]+)$/,m=>`ref. ${m[1]}–${m[2]}`],
+ [/^Select (.+)$/,m=>`Seleccionar ${m[1]}`],
+ [/^(\d+) min ago$/,m=>`hace ${m[1]} min`],
+ [/^(\d+) days ago$/,m=>`hace ${m[1]} días`],
+ [/^Day (\d+)$/,m=>`Día ${m[1]}`],
+ [/^Trend (.+) over (\d+) days$/,m=>`Tendencia ${m[1]} en ${m[2]} días`],
+ [/^NASA reference ranges · last packet (.+)$/,m=>`Rangos de referencia de la NASA · último paquete ${fixTime(m[1])}`],
+ [/^Source ref #(.+)$/,m=>`Ref. de fuente #${m[1]}`],
+ [/^NASA HISTORICAL DATA: (.+)$/,(m,T)=>`DATOS HISTÓRICOS DE LA NASA: ${T(m[1])}`],
+ [/^NASA reference: (.+)$/,(m,T)=>`Referencia NASA: ${T(m[1])}`],
+ [/^(.+) sits (below|above) the reference range$/,(m,T)=>`${T(m[1])} está por ${below(m[2])} del rango de referencia`],
+ [/^(.+) is (above|below) baseline$/,(m,T)=>`${T(m[1])} está por ${below(m[2])} de la línea base`],
+ [/^outside reference ([\d.]+)–([\d.]+) ([^;]+)$/,m=>`fuera de la referencia ${m[1]}–${m[2]} ${m[3]}`],
+ [/^([\d.]+) SD from own baseline \(limit 2\.5\)$/,m=>`${m[1]} DE respecto a su propia línea base (límite 2.5)`],
+ [/^(\d+) read$/,m=>`${m[1]} leídas`],
+ [/^(\d+) to review \(listed in the research file, not opened yet\)$/,m=>`${m[1]} por revisar (listadas en el archivo de investigación, aún sin abrir)`],
+ [/^STAGE (\d) · (NOW|NEXT|LATER)$/,m=>`ETAPA ${m[1]} · ${({NOW:'AHORA',NEXT:'SIGUIENTE',LATER:'DESPUÉS'})[m[2]]}`],
+ [/^Baseline (.+)$/,m=>`Línea base ${m[1]}`],
+ [/^(\d{1,2}:\d{2}(?::\d{2})?)\s?(AM|PM)$/i,m=>`${m[1]} ${m[2].toUpperCase()==='AM'?'a. m.':'p. m.'}`]
+];
+const PRE=/^([^\p{L}\p{N}\s]+)\s+([\s\S]+)$/u;
+
+function core(s,d){
+ d=d||0;if(d>6)return null;
+ if(MAP.has(s))return MAP.get(s);
+ const T=x=>{const r=core(x,d+1);return r==null?x:r};
+ for(const [re,fn] of RULES){const m=re.exec(s);if(m){const r=fn(m,T);if(r!=null)return r}}
+ const g=PRE.exec(s);                       /* "● texto", "⚠ texto", "♡ texto" */
+ if(g){const r=core(g[2],d+1);if(r!=null)return g[1]+' '+r}
+ for(const sep of [' · ','; ']){             /* piezas unidas con " · " o "; " */
+  if(s.includes(sep)){const p=s.split(sep),q=p.map(x=>core(x,d+1));if(q.some(x=>x!=null))return p.map((x,i)=>q[i]==null?x:q[i]).join(sep)}
+ }
+ if(s.includes(', ')){                      /* listas de abreviaturas: "HR, SpO₂" */
+  const p=s.split(', ');if(p.every(x=>ABBR.has(x))&&p.some(x=>ABBR.get(x)!==x))return p.map(x=>ABBR.get(x)).join(', ')
+ }
+ return null;
+}
+function TRS(str){
+ if(LANG!=='es'||typeof str!=='string')return str;
+ const m=/^(\s*)([\s\S]*?)(\s*)$/.exec(str),c=m[2];
+ if(!c)return str;
+ const r=core(c);
+ return m[1]+U(r==null?c:r)+m[3];
+}
+TR=TRS;
+
+/* ---- recorrido del DOM: traduce texto y atributos, y recuerda el original ---- */
+const SK='script,style,[data-notr]',AT=['title','aria-label'];
+const OT=new WeakMap(),OA=new WeakMap();
+const skip=n=>{const e=n.nodeType===1?n:n.parentElement;return !e||!!e.closest(SK)};
+function fixText(n){
+ if(skip(n))return;
+ const v=n.nodeValue,r=OT.get(n);
+ if(LANG==='es'){
+  if(r&&r.es===v)return;
+  const t=TRS(v);
+  if(t!==v){OT.set(n,{en:v,es:t});n.nodeValue=t}else OT.delete(n);
+ }else if(r){if(r.es===v)n.nodeValue=r.en;OT.delete(n)}
+}
+function fixAttrs(e){
+ if(e.nodeType!==1||skip(e))return;
+ for(const a of AT){
+  if(!e.hasAttribute(a))continue;
+  let o=OA.get(e);const v=e.getAttribute(a),r=o&&o[a];
+  if(LANG==='es'){
+   if(r&&r.es===v)continue;
+   const t=TRS(v);
+   if(t!==v){o=o||{};o[a]={en:v,es:t};OA.set(e,o);e.setAttribute(a,t)}else if(r)delete o[a];
+  }else if(r){if(r.es===v)e.setAttribute(a,r.en);delete o[a]}
+ }
+}
+function walk(root){
+ if(!root||skip(root))return;
+ if(root.nodeType===3){fixText(root);return}
+ if(root.nodeType!==1)return;
+ fixAttrs(root);
+ const w=document.createTreeWalker(root,5,{acceptNode:n=>n.nodeType===1&&n.matches(SK)?2:1});
+ let n;while(n=w.nextNode())n.nodeType===3?fixText(n):fixAttrs(n);
+}
+const obs=new MutationObserver(recs=>{
+ for(const r of recs){
+  if(r.type==='childList')r.addedNodes.forEach(n=>{if(n.isConnected)walk(n)});
+  else if(r.type==='characterData')fixText(r.target);
+  else if(r.type==='attributes')fixAttrs(r.target);
+ }
+ obs.takeRecords();                          /* descarta los cambios que hicimos nosotros */
+});
+
+const TITLES={en:'ASTRA | Crew Health System',es:'ASTRA | Sistema de salud de la tripulación'};
+function ui(){
+ const b=document.getElementById('lang');if(!b)return;
+ const es=LANG==='es';
+ b.children[0].classList.toggle('on',!es);b.children[1].classList.toggle('on',es);
+ b.title=es?'Switch to English':'Cambiar a español';
+ b.setAttribute('aria-label',es?'Idioma: español. Cambiar a inglés':'Language: English. Switch to Spanish');
+ document.documentElement.lang=LANG;document.title=TITLES[LANG];
+}
+function setLang(l){
+ LANG=l;try{localStorage.setItem('astra-lang',l)}catch(e){}
+ ui();walk(document.body);obs.takeRecords();
+ if(typeof rAll==='function')rAll();         /* vuelve a dibujar los gráficos (canvas) en el idioma nuevo */
+ if(typeof rHist==='function'&&typeof view!=='undefined'&&view==='history')rHist(); /* y el del historial */
+}
+i18nInit=()=>{
+ obs.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:AT});
+ const b=document.getElementById('lang');if(b)b.onclick=()=>setLang(LANG==='es'?'en':'es');
+ ui();
+ if(LANG==='es'){walk(document.body);obs.takeRecords();if(typeof rAll==='function')rAll()}
+};
+})();
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const M=[['hr','Heart Rate','HR','bpm',60,100,0,'♡'],['hrv','Heart Rate Variability','HRV','ms',30,80,0,'∿'],['spo2','Blood Oxygen Saturation','SpO₂','%',95,100,0,'◉'],['rr','Respiratory Rate','RR','br/min',12,20,0,'≋'],['bp','Blood Pressure','BP','mmHg',90,120,0,'⌁'],['temp','Body Temperature','Temp','°C',36.1,37.2,1,'♨'],['sleep','Sleep Quality & Duration','Sleep','h',7,9,1,'☾'],['act','Physical Activity & Exercise Load','Load','min/day',90,150,0,'⚡']];
+const MK=Object.fromEntries(M.map(m=>[m[0],m]));
+const PV={hr:['warn','SIMULATED DATA'],hrv:['warn','SIMULATED DATA · DERIVED INDICATOR'],spo2:['warn','SIMULATED DATA'],rr:['warn','SIMULATED DATA'],bp:['warn','SIMULATED DATA · diastolic is a DERIVED INDICATOR'],temp:['warn','SIMULATED DATA'],sleep:['warn','SIMULATED DATA'],act:['warn','SIMULATED DATA']};
+const RD={hr:'BEDREST0543 “HR last dinamap” median 70 (38–148), 780 tests, 30 subjects',hrv:'BEDREST0543 mean RR interval median 841 (403–1563); HRV is not stored, derive it from RR',spo2:'Data unavailable (not in BEDREST0543)',rr:'Data unavailable (the file’s “RR” is the RR interval, not breathing)',bp:'BEDREST0543 last dinamap SBP median 112 (66–196), DBP 63 (36–104)',temp:'Data unavailable (not in BEDREST0543)',sleep:'Data unavailable (not in BEDREST0543)',act:'Data unavailable (not in BEDREST0543)'};
+const NF={hr:'ISS exercise HR: T2 treadmill avg 131 / peak 162 bpm; CEVIS bike avg 135 / peak 163 [#14]',hrv:'ECG protocols: HR Monitoring MR019L [#7], 24 h ambulatory ECG [#8] (links not opened yet)',spo2:'Exp. 465 and 8265 cover sleep + SpO₂ per task doc (to verify) [#9, #40]',rr:'Exp. 465 lists breathing during sleep per task doc (to verify) [#9]',bp:'Orthostatic stress: Exp. 1289 (to verify) [#38]; BEDREST0543 PE/SNP dosing test',temp:'ISS cabin 18–27 °C and 30–65% humidity; both affect sleep [#19]',sleep:'NASA plans an 8.5 h sleep period; crews average 6–6.5 h, a ≈0.3 h/day deficit [#19, #20]',act:'ISS crews average ~2 h/day (≈600 min/week logged); 70–100% of VO₂peak or HRmax [#12, #14]'};
+const C=[{n:'Sofía Mendoza',r:'Commander',a:41,h:'1.70 m',w:'64 kg',c:'#3fe0f0',k:'#d9a37c',b:{hr:66,hrv:62,spo2:98,rr:14,bp:116,temp:36.7,sleep:7.4,act:120}},
+{n:'Marcus Lindqvist',r:'Flight Engineer',a:37,h:'1.82 m',w:'79 kg',c:'#4d8dff',k:'#f0c8a0',b:{hr:74,hrv:48,spo2:97,rr:16,bp:121,temp:36.9,sleep:6.2,act:105}},
+{n:'Aiko Tanaka',r:'Mission Specialist',a:34,h:'1.62 m',w:'55 kg',c:'#2ee6c0',k:'#e8c39e',b:{hr:70,hrv:55,spo2:99,rr:15,bp:112,temp:36.6,sleep:7.8,act:135}}];
+const R=(a,b)=>a+Math.random()*(b-a);
+let S,A,pv,cu=0,mk='hr',view='overview',iv=5000,tm,flt='all',hr=7,greeted=0;
+const DA=[{t:'ok',h:'Telemetry connection stable',x:'Data stream operating normally',a:'12 min ago'},{t:'info',h:'Routine health check completed',x:'Monitored indicators reviewed',a:'4 min ago'}];
+function init(){S=C.map(c=>{const cur={...c.b},hist={},day={};M.forEach(([k,,,,lo,hi])=>{const b=c.b[k],j=(hi-lo)*.04;hist[k]=Array.from({length:12},()=>b+R(-j,j));day[k]=Array.from({length:30},()=>b+R(-2*j,2*j))});return{cur,hist,day}});A=DA.map(a=>({...a}));pv=C.map(()=>({}));C.forEach((_,i)=>chk(i))}
+const dev=(k,v)=>{const m=MK[k],sp=m[5]-m[4];return v<m[4]?(m[4]-v)/sp:v>m[5]?(v-m[5])/sp:0};
+const st=(k,v)=>{const d=dev(k,v);return d===0?'ok':d<.6?'wn':'bd'};
+const lbl={ok:'Within range',wn:'Watch',bd:'Alert'},cls={ok:'good',wn:'warn',bd:'bad'},lbe={ok:'dentro de rango',wn:'vigilar',bd:'alerta'};
+const sc=(k,v)=>{const m=MK[k],h=(m[5]-m[4])/2,d=Math.abs(v-(m[4]+m[5])/2)/h;return Math.max(.05,Math.min(1,1-d*.25))};
+const fv=(k,v)=>k==='bp'?Math.round(v)+'/'+Math.round(v*.65):v.toFixed(MK[k][6]);
+const ready=i=>Math.round(M.reduce((a,m)=>a+sc(m[0],S[i].cur[m[0]]),0)/M.length*100);
+const worst=(i,ks=M.map(m=>m[0]))=>{let w='ok';ks.forEach(k=>{const s=st(k,S[i].cur[k]);if(s==='bd')w='bd';else if(s==='wn'&&w==='ok')w='wn'});return w};
+const now=()=>new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+function chk(i){M.forEach(([k,n,,u,lo,hi])=>{const s=st(k,S[i].cur[k]);if(s!=='ok'&&s!==(pv[i][k]||'ok'))A.unshift({t:s,h:`${C[i].n}: ${n} ${s==='bd'?'out of range':'outside baseline'}`,x:`Reading ${fv(k,S[i].cur[k])} ${u} · reference ${lo}–${hi}`,a:now()});pv[i][k]=s});A=A.slice(0,40)}
+const av=(c,k)=>{const g='g'+c.slice(1);return`<svg viewBox="0 0 64 64" width="64" height="64" style="flex:none"><defs><radialGradient id="${g}" cx=".5" cy=".35"><stop offset="0" stop-color="${c}" stop-opacity=".6"/><stop offset="1" stop-color="#e6f0f6"/></radialGradient></defs><circle cx="32" cy="32" r="31" fill="url(#${g})" stroke="${c}" stroke-width="1.5"/><path d="M10 58c2-12 12-17 22-17s20 5 22 17a31 31 0 0 1-44 0z" fill="#dfe9f5"/><rect x="26" y="40" width="12" height="7" fill="${k}"/><circle cx="32" cy="27" r="15" fill="#eaf2fb" stroke="${c}" stroke-width="2"/><rect x="20" y="18" width="24" height="17" rx="8" fill="#0a2236" stroke="${c}" stroke-opacity=".7"/><ellipse cx="32" cy="27" rx="6" ry="7" fill="${k}"/><path d="M26 24q6-8 12 0q-6-3-12 0z" fill="#2a1a12"/><circle cx="30" cy="27" r=".9" fill="#222"/><circle cx="34" cy="27" r=".9" fill="#222"/></svg>`};
+const sp=v=>{const lo=Math.min(...v),r=(Math.max(...v)-lo)||1;return`<svg viewBox="0 0 100 28" preserveAspectRatio="none" class="sp"><polyline fill="none" stroke="var(--cy)" stroke-width="1.8" vector-effect="non-scaling-stroke" points="${v.map((y,i)=>(i*100/(v.length-1)).toFixed(1)+','+(26-(y-lo)/r*24).toFixed(1)).join(' ')}"/></svg>`};
+const proj=v=>{const n=v.length;return v[n-1]+(v[n-1]-v[n-6])/5*3};
+const radar=i=>{const pt=(j,s)=>{const a=(-90+j*45)*Math.PI/180;return[Math.cos(a)*100*s,Math.sin(a)*100*s]},P=(f)=>M.map((m,j)=>pt(j,f(m)).map(z=>z.toFixed(1)).join(',')).join(' ');return`<svg viewBox="-150 -125 300 250" class="radar">${[.25,.5,.75,1].map(s=>`<polygon points="${P(()=>s)}" fill="none" stroke="#d3dee6" ${s===.75?'stroke-dasharray="3 3" stroke="#2f8aa8"':''}/>`).join('')}${M.map((m,j)=>{const[x,y]=pt(j,1),[lx,ly]=pt(j,1.22);return`<line x1="0" y1="0" x2="${x}" y2="${y}" stroke="#d3dee6"/><text x="${lx}" y="${ly+4}" text-anchor="middle" fill="#647786" font-size="11">${m[2]}</text>`}).join('')}<polygon points="${P(m=>sc(m[0],S[i].cur[m[0]]))}" fill="var(--cy)" fill-opacity=".22" stroke="var(--cy)" stroke-width="2"/></svg>`};
+function line(cv,v,d,pj,lb,bl){const r=cv.getBoundingClientRect(),dp=devicePixelRatio||1;if(!r.width)return;cv.width=r.width*dp;cv.height=r.height*dp;const x=cv.getContext('2d');x.setTransform(dp,0,0,dp,0,0);const w=r.width,h=r.height,P={l:38,r:8,t:12,b:22},n=v.length;let a=v.slice();if(pj){const k=(v[n-1]-v[n-6])/5;for(let i=1;i<=3;i++)a.push(v[n-1]+k*i)}
+let lo=Math.min(...a),hi=Math.max(...a);if(bl!==undefined){lo=Math.min(lo,bl);hi=Math.max(hi,bl)}const pd=(hi-lo||1)*.4;lo-=pd;hi+=pd;
+const X=i=>P.l+(w-P.l-P.r)*i/(a.length-1),Y=y=>P.t+(h-P.t-P.b)*(1-(y-lo)/(hi-lo)),cy=getComputedStyle(document.documentElement).getPropertyValue('--cy').trim()||'#3fe0f0';
+x.font='11px "IBM Plex Mono",monospace';x.lineWidth=1;
+for(let i=0;i<4;i++){const y=P.t+(h-P.t-P.b)*i/3;x.strokeStyle='#e3eaef';x.beginPath();x.moveTo(P.l,y);x.lineTo(w-P.r,y);x.stroke();x.fillStyle='#6b7f8d';x.fillText((hi-(hi-lo)*i/3).toFixed(d),2,y+4)}
+if(bl!==undefined){x.setLineDash([2,4]);x.strokeStyle='#8ea3b2';x.beginPath();x.moveTo(P.l,Y(bl));x.lineTo(w-P.r,Y(bl));x.stroke();x.setLineDash([]);x.fillStyle='#8ea3b2';{const bt=TR('baseline');x.fillText(bt,w-P.r-x.measureText(bt).width-4,Y(bl)-4)}}const g=x.createLinearGradient(0,P.t,0,h-P.b);g.addColorStop(0,cy+'55');g.addColorStop(1,cy+'00');
+x.beginPath();for(let i=0;i<n;i++)i?x.lineTo(X(i),Y(a[i])):x.moveTo(X(i),Y(a[i]));x.lineTo(X(n-1),h-P.b);x.lineTo(X(0),h-P.b);x.fillStyle=g;x.fill();
+x.beginPath();for(let i=0;i<n;i++)i?x.lineTo(X(i),Y(a[i])):x.moveTo(X(i),Y(a[i]));x.strokeStyle=cy;x.lineWidth=2.4;x.stroke();x.shadowBlur=0;
+if(pj){x.beginPath();x.setLineDash([5,5]);for(let i=n-1;i<a.length;i++)i>n-1?x.lineTo(X(i),Y(a[i])):x.moveTo(X(i),Y(a[i]));x.strokeStyle='#d28b0f';x.stroke();x.setLineDash([])}
+x.beginPath();x.arc(X(n-1),Y(a[n-1]),4,0,7);x.fillStyle=cy;x.fill();x.fillStyle='#6b7f8d';x.fillText(TR(lb[0]),P.l,h-6);x.fillText(TR(lb[1]),w-P.r-x.measureText(TR(lb[1])).width,h-6)}
+const H={overview:['MISSION CONTROL / HEALTH TELEMETRY','Crew health overview','Real-time astronaut wellness monitoring · Artemis research simulation'],vitals:['BIOMETRIC PANEL / 8 TELEMETRY CHANNELS','Vital signs','Eight medical metrics linked to NASA reference datasets'],history:['ANALYTICS / TRENDS','Health history','Daily trends and statistics for the last 30 days'],crew:['CREW / PERSONNEL','Crew profile','Baseline, current status and wellness radar'],alerts:['BIO-ALERTS / EVENTS','Alerts & events','Notifications generated from telemetry thresholds'],settings:['SYSTEM / CONFIGURATION','System settings','Simulation, display and calibration controls'],sources:['NASA REFERENCES / DATA PROVENANCE','NASA sources','39 linked references, verified facts and the real BEDREST0543 dataset']};
+function go(v){view=v;$$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));$$('.nav').forEach(b=>b.classList.toggle('on',b.dataset.v===v));[$('#eb').textContent,$('#h1').textContent,$('#sub').textContent]=[0,0,0];const h=H[v];$('#eb').textContent=h[0];$('#h1').textContent=h[1];$('#sub').textContent=h[2];scrollTo(0,0);if(v==='sources')rSrc();rAll()}
+function rAll(){const s=S[cu],w=worst(cu);$('#cards').innerHTML=M.map(([k,n,,u,lo,hi,,i])=>{const q=st(k,s.cur[k]);return`<button class="card${k===mk?' sel':''}" data-k="${k}"><div class="sh"><span>${n.toUpperCase()}</span><b>${i}</b></div><div class="sv mono">${fv(k,s.cur[k])} <small>${u}</small></div><div class="sf ${cls[q]}">● ${lbl[q]} <span>· ref ${lo}–${hi}</span></div></button>`}).join('');
+const m=MK[mk];$('#leg').textContent=m[1];line($('#cv'),s.hist[mk],m[6],1,['60 min ago','+15 min'],C[cu].b[mk]);
+const OV={ok:['NOMINAL','No significant deviations detected'],wn:['WATCH','Minor deviations — monitor closely'],bd:['ALERT','Out-of-range indicator — review recommended']},rd=ready(cu),SY=[['Cardiovascular',['hr','hrv','bp']],['Respiratory',['spo2','rr']],['Thermoregulation',['temp']],['Sleep & recovery',['sleep']],['Physical conditioning',['act']]];
+$('#stat').innerHTML=`<div class="ring ${w}"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#dbe6ee" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="var(--${w==='ok'?'ok':w==='wn'?'wn':'bd'})" stroke-width="7" stroke-dasharray="${(rd*2.136).toFixed(0)} 214" transform="rotate(-90 40 40)"/><text x="40" y="46" text-anchor="middle" fill="#1e2933" font-size="19" class="mono">${rd}</text></svg><div><strong class="${cls[w]}">${OV[w][0]}</strong><small>${OV[w][1]}</small></div></div>`+SY.map(([n,ks])=>{const q=worst(cu,ks);return`<div class="row"><span>${n}</span><strong class="${cls[q]}">${q==='ok'?'Normal':q==='wn'?'Watch':'Alert'}</strong></div>`}).join('')+`<div class="row"><span>Stress proxy (sleep, HR, HRV)</span><strong class="mono">${stress()}/100</strong></div><div class="row"><span>Circadian window 1–7 AM</span><strong class="${cw()?'warn':'good'}">${cw()?'Avoid critical tasks':'Clear'}</strong></div><div class="row"><span>Last data packet</span><strong>Just now</strong></div>`;
+const bn=$('#bn'),bad=M.filter(m=>st(m[0],s.cur[m[0]])!=='ok');bn.style.display=bad.length?'block':'none';bn.className='bn '+(w==='wn'?'wn':'');bn.textContent=`⚠ BIO-ALERT · ${C[cu].n}: ${bad.map(m=>m[2]).join(', ')} outside reference range`;
+$('#sbs').textContent=worst(0)+worst(1)+worst(2)==='okokok'?'● SYSTEM NOMINAL':'● CREW MONITORING';
+$('#rad').innerHTML=radar(cu);
+const act=A.filter(a=>a.t==='wn'||a.t==='bd').length;$('#bdg').textContent=act||'';
+$('#alMini').innerHTML=A.slice(0,3).map(alH).join('');
+rOv();rSum();if(view==='history')rHist();if(view==='crew'){rCrew();rVit()}if(view==='alerts'){rAlerts();rIntel()}if(view==='scen'&&scI!==cu)rScen()}
+const alH=(a,i)=>`<div class="al"><i class="i-${a.t}"></i><div><strong>${a.h}</strong><small>${a.x} · ${a.a}</small></div>${i===undefined?'':`<button class="x" data-del="${i}" aria-label="Dismiss">✕</button>`}</div>`;
+function rVit(){const s=S[cu];$('#vit').innerHTML=[...M].sort((a,b)=>CO.indexOf(CAT[a[0]])-CO.indexOf(CAT[b[0]])).map(([k,n,sh,u,lo,hi,d,i])=>{const v=s.cur[k],q=st(k,v),p=proj(s.hist[k]),ar=Math.abs(p-v)<(hi-lo)*.01?'→':p>v?'↗':'↘';return`<article class="card"><div class="ct"><div><h2>${i} ${n}</h2><p>${CAT[k]} · reference ${lo}–${hi} ${u}</p></div><span class="tag ${cls[q]}">${lbl[q].toUpperCase()}</span></div><div class="sv mono">${fv(k,v)} <small>${u}</small></div>${sp(s.hist[k])}<div class="row"><span>PREDICTED SCENARIO · +15 min trend</span><strong class="mono">${ar} ${fv(k,p)} ${u}</strong></div><div class="src"><span class="tag ${PV[k][0]}">${PV[k][1]}</span><br>NASA HISTORICAL DATA: ${RD[k]}<br>NASA reference: ${NF[k]}</div><div class="btns" style="margin-top:8px"><button class="btn" data-hist="${k}">HISTORY ›</button><button class="btn" data-trend="${k}">LIVE CHART ›</button></div></article>`}).join('')}
+function rHist(){const k=$('#hSel').value,m=MK[k],v=S[cu].day[k].slice(-hr),mn=Math.min(...v),mx=Math.max(...v),av2=v.reduce((a,b)=>a+b,0)/v.length,tr=v[v.length-1]-v[0];$('#hT').textContent=m[1]+' · '+C[cu].n;line($('#hcv'),v,m[6],0,[hr+' days ago','Today'],C[cu].b[k]);$('#hStats').innerHTML=[['MIN',mn],['AVERAGE',av2],['MAX',mx]].map(([l,x])=>`<article class="card"><div class="sh"><span>${l}</span></div><div class="sv mono">${fv(k,x)} <small>${m[3]}</small></div><div class="sf"><span>Trend ${tr>=0?'↗ +':'↘ '}${tr.toFixed(m[6]+1)} over ${hr} days</span></div></article>`).join('')}
+function rCrew(){const c=C[cu],s=S[cu];$('#cp').innerHTML=`<div class="cr"><div class="hd"><svg width="0" height="0"></svg>${av(c.c,c.k).replace('width="64" height="64"','width="96" height="96"')}<div><h3 style="font-size:24px">${c.n}</h3><small>${c.r} · ORBITAL-01 · Day 018</small></div></div><div class="row"><span>Age</span><strong>${c.a}</strong></div><div class="row"><span>Height / weight</span><strong>${c.h} · ${c.w}</strong></div><div class="row"><span>Readiness index</span><strong class="mono">${ready(cu)}%</strong></div><div class="row"><span>Status</span><strong class="${cls[worst(cu)]}">${OVs[worst(cu)]}</strong></div><div class="chips">${C.map((x,i)=>`<button class="tag${i===cu?' on':''}" data-pick="${i}">${x.n.split(' ')[0].toUpperCase()}</button>`).join('')}</div></div>`;$('#rad2').innerHTML=radar(cu);$('#bvn').innerHTML=M.map(([k,n,,u])=>{const b=c.b[k],v=s.cur[k],df=v-b,q=st(k,v);return`<div class="row"><span>${n}</span><span class="mono">${fv(k,b)} → <b class="${cls[q]}">${fv(k,v)}</b> ${u} <span style="color:var(--mu)">(${df>=0?'+':''}${df.toFixed(MK[k][6])})</span></span></div>`}).join('')}
+const OVs={ok:'Nominal',wn:'Watch',bd:'Alert'};
+const CT=['Data portals','Vital signs','Exercise','Sleep & circadian','Behavioral health','HRP','Reports & experiments'],N='https://www.nasa.gov/',OP={14:'FULL',19:'FULL',12:'PARTIAL',20:'PARTIAL'};let rcat=-1;
+const stress=()=>Math.round(100-(sc('sleep',S[cu].cur.sleep)+sc('hr',S[cu].cur.hr)+sc('hrv',S[cu].cur.hrv))/3*100),cw=()=>{const h=new Date().getHours();return h>=1&&h<7};
+const FACTS=[['NASA recommends an 8.5 h sleep period; crews average only 6–6.5 h (≈0.3 h/day deficit).','19, 20'],['Critical tasks should avoid the circadian nadir, about 1–7 AM relative to normal sleep.','20'],['ISS exercise HR: treadmill averages 131 bpm (peak 162); bike 135 bpm (peak 163), ~26–27 min per session.','14'],['Crews average ~2 h/day of exercise on ARED, T2 treadmill and CEVIS bike; ~600 min/week were logged in ISS data.','12, 14'],['Prescription is 70–100% of VO₂peak (bike) or HRmax (treadmill); aerobic capacity must stay ≥80% of pre-mission.','14'],['After ~178 days crews lost about 7% of VO₂peak on average; 12–21% fell below the −20% requirement.','14'],['Bed rest without exercise cuts aerobic capacity about 20% by day 30; exercise preserved it in a 70-day study.','14'],['Seven days at 6 h of sleep can impair performance like 24–36 h awake.','19'],['ISS cabin runs 18–27 °C and 30–65% humidity; noise, light and CO₂ also disturb sleep.','19']];
+const RF=[[1,0,'NASA Life Sciences Portal (LSDA)','https://lsda.jsc.nasa.gov/',5],[2,0,'Life Sciences Portal overview','~hrp/nlsp/',5],[3,0,'NLSP documents search','https://nlsp.nasa.gov/explore/jtable/lsda_document/lsda_document',5],[4,0,'Exercise & Nutrition Countermeasure record','https://nlsp.nasa.gov/search/data/details/IDP-LSDA_DOCUMENT-0000000000003116?dataType=DOCUMENTS',5],[5,0,'Annual Medical Examinations','https://nlsp.nasa.gov/search/data/details/IDP-LSDA_DOCUMENT-0000000000000037?dataType=DOCUMENTS',5],[6,0,'Publications from LSAH analyses','https://nlsp.nasa.gov/search/data/details/IDP-LSDA_DOCUMENT-0000000000001588?dataType=DOCUMENTS',5],[7,1,'Heart Rate Monitoring (MR019L)','https://lsda.jsc.nasa.gov/explore/api/v1/getfiles3?id=IDP-LSDA_DOCUMENT-0000000000001485&type=lsda_document&alias=lsda',2],[8,1,'MEDB 1.7 · 24 h ambulatory ECG','https://lsda.jsc.nasa.gov/explore/api/v1/getfiles3?id=IDP-LSDA_DOCUMENT-0000000000003386&type=lsda_document&alias=lsda',2],[9,1,'Exp. 465 · Sleep & SpO₂','https://lsda.jsc.nasa.gov/Experiment/exper/465',1],[10,1,'Exp. 13773 · Activity & sleep in isolation','https://lsda.jsc.nasa.gov/Experiment/exper/13773',1],[11,1,'Deconditioning & exercise prescription','~wp-content/uploads/2025/02/sp-20250000273.pdf',3],[12,2,'Astronaut Exercise (ISS)','~missions/station/iss-research/astronaut-exercise/',5],[13,2,'Exercise physiology & countermeasures','~directorates/esdmd/hhp/exercise-physiology-and-countermeasures/',5],[14,2,'OCHMO-TB-031 Exercise Overview','~wp-content/uploads/2023/12/ochmo-tb-031-exercise-overview.pdf',3],[15,2,'Real story: astronaut health care','~humans-in-space/faq-the-real-story-about-astronaut-health-care-in-space/',5],[16,2,'Muscle & exercise studies (2025)','~blogs/spacestation/2025/07/16/muscle-and-exercise-studies-to-maintain-crew-health-in-space/',5],[17,2,'Station exercise & physics research','~blogs/spacestation/2025/09/04/station-exercise-and-physics-research-advancing-earth-and-space-health/',5],[18,3,'Seven ways astronauts improve sleep','~missions/station/seven-ways-astronauts-improve-sleep-may-help-you-snooze-better-on-earth/',5],[19,3,'OCHMO-TB-041 Sleep Accommodations','~wp-content/uploads/2023/12/ochmo-tb-041-sleep-accommodations.pdf',3],[20,3,'6.0 Medical Operations','~reference/6-0-medical-operations/',3],[21,3,'Living and Working in Space','~wp-content/uploads/2015/05/167746main_fs_livingandworkinginspace508c.pdf',5],[22,4,'Adverse cognitive/behavioral risk','~directorates/esdmd/hhp/behavioral-health-risk/',4],[23,4,'Human factors & behavioral risks','~hrp/human-factors-and-behavioral-performance/hfbp-risks/',4],[24,4,'OCHMO-TB-014 Behavioral mishaps','~wp-content/uploads/2023/12/ochmo-tb-014-behavioral-health-mishaps.pdf',4],[25,4,'2016 HRP Annual Report','~wp-content/uploads/2018/07/hrp-fy2016-annual-report-web-version.pdf',5],[26,5,'Human Research Program','~hrp/',5],[27,5,'About HRP','~hrp/about-hrp/',5],[28,5,'Risks of human spaceflight','~hrp/risks/',5],[29,5,'Human Health Countermeasures','~hrp/human-health-countermeasures/',5],[30,5,'About Human Health Countermeasures','~reference/about-human-health-countermeasures/',5],[31,5,'HHC spaceflight risks','~humans-in-space/hhc-spaceflight-risks/',5],[32,5,'HERO opportunities','~hrp/hero/',5],[33,5,'Fundamentals of human health','~reference/fundamentals-of-human-health/',5],[34,5,'HRP: five spaceflight hazards','~humans-in-space/nasas-human-research-program-trailblazing-better-ways-to-protect-astronauts/',5],[35,6,'HRP Overview (NTRS)','https://ntrs.nasa.gov/api/citations/20230017691/downloads/HRP_OverviewPlattS2.pdf?attachment=true',5],[36,6,'Human Research Program (NTRS 2016)','https://ntrs.nasa.gov/api/citations/20160005884/downloads/20160005884.pdf',5],[37,6,'HRP Overview: Life Sciences in Space','https://ntrs.nasa.gov/api/citations/20230014334/downloads/HRP%20Overview%20Life%20Sciences%20in%20Space%20-%20Final.pdf',5],[38,6,'Exp. 1289 · Autonomic dysfunction','https://lsda.jsc.nasa.gov/Experiment/exper/1289',1],[40,6,'Exp. 8265 · Sleep & SpO₂','https://lsda.jsc.nasa.gov/Experiment/exper/8265',1]];
+function rOv(){$('#ovFacts').innerHTML=FACTS.slice(0,4).map(f=>'• '+f[0]+' <span class="tag">#'+f[1]+'</span>').join('<br>')}
+function rSrc(){$('#facts').innerHTML=FACTS.map(f=>`<div class="al"><i class="i-info"></i><div><strong style="font-weight:600">${f[0]}</strong><small>Source ref #${f[1]}</small></div></div>`).join('');
+$('#bed').innerHTML=[['Package','15 CSV files · md5 15/15 match'],['Subjects','32 codes · dosing test 30 (20 M, 10 F)'],['Rows','2,425 across all files'],['Bed-rest days','0–64 hormones · 0–90 vascular · −5…88 dosing'],['Cortisol (real)','median 14.3 µg/dl · range 2.8–34.5'],['ACTH (real)','median 29.1 pg/ml · range 7.4–343'],['Limits','No sleep, activity, SpO₂, temperature or daily HR; cardiovascular units not stated in file'],['Rule','Label as bed-rest data (2005–2010), never as current astronaut data']].map(([a,b])=>`<div class="row"><span>${a}</span><strong style="text-align:right;font-weight:600">${b}</strong></div>`).join('');
+$('#rc').innerHTML=['ALL',...CT].map((c,i)=>`<button class="tag${rcat===i-1?' on':''}" data-rc="${i-1}">${c.toUpperCase()}</button>`).join('');
+$('#rl').innerHTML=`<div class="sf" style="margin:0 0 8px"><b class="good">${Object.keys(OP).length} read</b> · ${RF.length-Object.keys(OP).length} to review (listed in the research file, not opened yet)</div>`+RF.filter(r=>rcat<0||r[1]===rcat).map(([id,c,ti,u,p])=>{const o=OP[id]||'LINK',cl=o==='FULL'?'good':o==='PARTIAL'?'warn':o==='RESTRICTED'?'bad':'';return`<div class="row"><span>#${id} · ${ti}</span><span><b class="tag ${cl}">${o==='LINK'?'TO REVIEW':o}</b> <b class="tag">P${p}</b> <a href="${u[0]==='~'?N+u.slice(1):u}" target="_blank" rel="noopener">open ›</a></span></div>`}).join('')}
+function rAlerts(){$('#flt').innerHTML=[['all','ALL'],['bd','CRITICAL'],['wn','WARNING'],['info','INFO']].map(([f,l])=>`<button class="tag${flt===f?' on':''}" data-f="${f}">${l}</button>`).join('');const l=A.map((a,i)=>[a,i]).filter(([a])=>flt==='all'||a.t===flt||(flt==='info'&&a.t==='ok'));$('#alAll').innerHTML=l.length?l.map(([a,i])=>alH(a,i)).join(''):'<div class="sub">No events in this category.</div>'}
+function pick(i){cu=i;$('#cs').value=i;rAll()}
+function restart(){clearInterval(tm);if($('#tLive').checked)tm=setInterval(tick,iv);const l=$('#live'),on=$('#tLive').checked;l.textContent=on?'● SIMULATION LIVE':'❚❚ SIMULATION PAUSED';l.classList.toggle('off',!on)}
+function tick(){S.forEach((s,i)=>{M.forEach(([k,,,,lo,hi])=>{const b=C[i].b[k],j=(hi-lo)*.04,v=s.cur[k]+R(-j,j)+(b-s.cur[k])*.25;s.cur[k]=v;s.hist[k].push(v);s.hist[k].shift()});chk(i)});rAll()}
+
+const CAT={hr:'CARDIOVASCULAR',hrv:'CARDIOVASCULAR',bp:'CARDIOVASCULAR',spo2:'RESPIRATORY',rr:'RESPIRATORY',temp:'THERMOREGULATION',sleep:'RECOVERY',act:'PHYSICAL PERFORMANCE'},CO=['CARDIOVASCULAR','RESPIRATORY','THERMOREGULATION','RECOVERY','PHYSICAL PERFORMANCE'];
+const LV={g:['GREEN','STABLE'],y:['YELLOW','MONITORING'],o:['ORANGE','ELEVATED CONCERN'],r:['RED','CRITICAL']};
+const HINT={hr:'sensor contact, recent exertion, stress, hydration',hrv:'recovery, sleep debt, recent workload',spo2:'sensor fit first, then cabin O₂/CO₂ and breathing',rr:'CO₂ level, exertion, signal quality',bp:'cuff and posture, hydration, repeat in 10 min',temp:'cabin thermal control, exertion, hydration',sleep:'sleep schedule, light, noise, cabin conditions',act:'exercise-plan adherence and equipment logs'};
+Object.assign(H,{overview:['ASTRA SPACE / CREW OVERVIEW','Crew overview','Simulated crew telemetry · NASA historical reference ranges'],crew:['ASTRA SPACE / CREW MONITORING','Crew monitoring','Individual baseline, status and 8 physiological outputs by clinical category'],alerts:['ASTRA SPACE / MEDICAL INTELLIGENCE','Medical Intelligence & Risk Analysis','Baseline-aware analysis with explainable alert levels · not a diagnosis'],scen:['ASTRA SPACE / SCENARIO SIMULATION','Scenario simulation','Change hypothetical inputs and watch the analysis respond · SIMULATED'],history:['ASTRA SPACE / HISTORICAL DATA','Historical data','Trends against each astronaut’s own baseline · SIMULATED daily averages'],beyond:['ASTRA PLATFORM / BEYOND SPACE','Beyond space: ASTRA for Peru','From astronaut monitoring to accessible care · concept, not an operational application']});
+const sdv=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)||1e-6};
+const crit=(k,v)=>k==='spo2'&&v<90||k==='hr'&&(v>130||v<40)||k==='temp'&&v>38.5;
+function analyze(i,cur,hist){const b=C[i].b,out=[];
+ M.forEach(([k])=>{const v=cur[k],sd=sdv(S[i].day[k]),z=(v-b[k])/sd,ty=[];
+  if(st(k,v)!=='ok')ty.push('MEASURED THRESHOLD');
+  if(Math.abs(z)>=2.5)ty.push('DETECTED ANOMALY');
+  if(hist&&Math.abs((hist[k].slice(-4).reduce((x,y)=>x+y,0)/4-b[k])/sd)>=1.5)ty.push('PERSISTENT');
+  if(ty.length)out.push({k,u:MK[k][3],v,b:b[k],z,ty,c:crit(k,v),dir:v>b[k]?'above':'below'})});
+ const lv=out.some(f=>f.c)||out.length>=4?'r':out.length>=2||out.some(f=>f.ty.includes('PERSISTENT'))?'o':out.length?'y':'g';
+ return{lv,out}}
+function fnd(f,all,lv){const m=MK[f.k],d=m[6],o=all.filter(x=>x!==f).map(x=>MK[x.k][2]),dl=f.v-f.b,pc=dl/f.b*100,to=f.ty.length===1&&f.ty[0]==='MEASURED THRESHOLD',
+ ch=to?`${m[1]} sits ${f.v<m[4]?'below':'above'} the reference range`:`${m[1]} is ${f.dir} baseline`,
+ why=f.ty.map(t=>t==='MEASURED THRESHOLD'?`outside reference ${m[4]}–${m[5]} ${m[3]}`:t==='DETECTED ANOMALY'?`${Math.abs(f.z).toFixed(1)} SD from own baseline (limit 2.5)`:'last 4 readings stay at least 1.5 SD from baseline').join('; ')+(f.c?'; critical limit crossed (illustrative)':'');
+ return`<div class="ia" data-l="${lv}"><div class="ct" style="margin:0"><strong>${m[1]}</strong><span>${f.ty.map(t=>`<span class="tag">${t}</span>`).join(' ')}</span></div><div class="fx"><b>What changed</b><span>${ch}</span><b>Observed</b><span class="mono">${fv(f.k,f.v)} ${f.u}</span><b>Vs baseline</b><span class="mono">${fv(f.k,f.b)} → ${fv(f.k,f.v)} (${dl>=0?'+':''}${dl.toFixed(d)}, ${pc>=0?'+':''}${pc.toFixed(0)}%)</span><b>Also involved</b><span>${o.length?o.join(', '):'None: isolated change'}</span><b>Why flagged</b><span>${why}</span><b>Investigate</b><span>${HINT[f.k]}</span></div></div>`}
+function rIntel(){$('#intel').innerHTML=C.map((c,i)=>{const a=analyze(i,S[i].cur,S[i].hist),l=LV[a.lv];
+ return`<article class="card" style="margin-bottom:14px"><div class="ct"><div style="display:flex;gap:12px;align-items:center">${av(c.c,c.k).replace('width="64" height="64"','width="44" height="44"')}<div><h2>${c.n}</h2><p>${c.r} · SIM-0${i+1} · SIMULATED DATA</p></div></div><span class="lv lv-${a.lv}">${l[0]} · ${l[1]}</span></div>${a.out.length?a.out.map(f=>fnd(f,a.out,a.lv)).join(''):'<div class="sub">No significant deviation from baseline identified.</div>'}</article>`}).join('')+
+ `<article class="card" style="margin-bottom:14px"><div class="ct"><div><h2>Method and assumptions</h2><p>How alert levels are assigned</p></div><span class="tag warn">NOT A DIAGNOSIS</span></div><ul class="ul"><li>MEASURED THRESHOLD: value outside the fixed reference range used here. Ranges are generic adult ranges plus NASA figures where available, not validated per astronaut.</li><li>DETECTED ANOMALY: value at least 2.5 standard deviations from the astronaut’s own 30-day baseline (SIMULATED history).</li><li>PERSISTENT: the mean of the last 4 readings stays at least 1.5 standard deviations from baseline.</li><li>Yellow: one flagged measure. Orange: two or more flagged together, or one persistent. Red: four or more together, or an illustrative critical limit (SpO₂ below 90%, HR above 130 or below 40, temperature above 38.5 °C).</li><li>All values are SIMULATED DATA. Cut-offs are assumptions pending clinical validation.</li></ul></article>`}
+function rSum(){const X=C.map((c,i)=>({c,i,a:analyze(i,S[i].cur,S[i].hist)})),att=X.filter(x=>x.a.lv!=='g').length,nal=X.reduce((t,x)=>t+x.a.out.length,0);
+ $('#sum').innerHTML=[['CREW MEMBERS',C.length,'',''],['ACTIVE ALERTS',nal,nal?'warn':'good',''],['NEED ATTENTION',att,att?'warn':'good',''],['DATA SOURCE','SIMULATED','warn','NASA reference ranges · last packet '+new Date().toLocaleTimeString()]].map(([l,v,c,f])=>`<article class="card"><div class="sh"><span>${l}</span></div><div class="sv mono ${c}">${v}</div><div class="sf"><span>${f}</span></div></article>`).join('');
+ $('#roster').innerHTML=X.map(({c,i,a})=>`<article class="card cr${i===cu?' sel':''}" data-pick="${i}" tabindex="0" title="Select ${c.n}"><div class="hd">${av(c.c,c.k)}<div><h3>${c.n}</h3><small>${c.r} · SIM-0${i+1}</small></div><span class="lv lv-${a.lv}" style="margin-left:auto">${LV[a.lv][0]} · ${LV[a.lv][1]}</span></div><div class="mini"><div>HR<b class="mono">${fv('hr',S[i].cur.hr)}</b></div><div>SpO₂<b class="mono">${fv('spo2',S[i].cur.spo2)}%</b></div><div>BP<b class="mono">${fv('bp',S[i].cur.bp)}</b></div></div><small>${a.out.length?a.out.length+' active alert(s): '+a.out.map(f=>MK[f.k][2]).join(', '):'No active alerts'} · SIMULATED DATA</small><div class="btns"><button class="btn f" data-pick="${i}">MONITOR</button><button class="btn f" data-prof="${i}">PROFILE</button></div></article>`).join('');
+ const me=X[cu].a;$('#stat').insertAdjacentHTML('afterbegin',`<div class="row"><span>ASTRA risk level</span><strong><span class="lv lv-${me.lv}">${LV[me.lv][0]} · ${LV[me.lv][1]}</span></strong></div>`)}
+let scv={},scI=-1;
+const RG={hr:[30,180],hrv:[5,100],spo2:[80,100],rr:[6,35],bp:[70,180],temp:[34,40],sleep:[0,10],act:[0,240]};
+const PRE={'Low SpO₂':{spo2:-6,rr:5},'High HR':{hr:45,hrv:-20},'Short sleep':{sleep:-4,hrv:-12,hr:8},'Less activity':{act:-90},'Multi-system':{hr:35,spo2:-6,sleep:-3,temp:1.2,rr:5,hrv:-18}};
+const clp=(k,v)=>Math.min(RG[k][1],Math.max(RG[k][0],v));
+const PAT=[[['spo2','rr'],'Lower oxygen saturation with a changed breathing rate: a team would check sensor fit first, then oxygenation.'],[['hr','hrv'],'Higher heart rate with lower variability: a pattern linked with physiological strain or incomplete recovery.'],[['sleep','hrv'],'Short sleep with lower variability: recovery may be limiting cardiovascular measures.'],[['temp','hr'],'Temperature and heart rate rising together: possible thermal or exertional load.']];
+function rScen(){const c=C[cu];if(scI!==cu){scI=cu;scv={...c.b}}
+ $('#scSub').textContent=c.n+' · baseline vs hypothetical inputs · SIMULATED';
+ $('#scPre').innerHTML=Object.keys(PRE).map(p=>`<button class="tag" data-pre="${p}">${p}</button>`).join('');
+ $('#scSl').innerHTML=M.map(([k,n,,u,,,d])=>`<label class="set" style="display:block"><div style="display:flex;justify-content:space-between"><span>${n}</span><b class="mono">${fv(k,scv[k])} ${u}</b></div><input type="range" data-sl="${k}" min="${RG[k][0]}" max="${RG[k][1]}" step="${d?0.1:1}" value="${scv[k]}" style="width:100%"><small>Baseline ${fv(k,c.b[k])} ${u}</small></label>`).join('');
+ sOut()}
+function sOut(){const c=C[cu],a=analyze(cu,scv,null),l=LV[a.lv],F=new Set(a.out.map(f=>f.k)),pt=PAT.filter(([ks])=>ks.every(k=>F.has(k)));
+ $('#scLv').innerHTML=`<span class="lv lv-${a.lv}">${l[0]} · ${l[1]}</span>`;
+ $('#scOut').innerHTML=`<div class="tbw"><table class="tb"><tr><th>Measure</th><th>Baseline</th><th>Hypothetical</th><th>Change</th><th>Status</th></tr>${M.map(([k,n,,u,,,d])=>{const v=scv[k],b=c.b[k],q=st(k,v);return`<tr><td>${n}</td><td class="mono">${fv(k,b)} ${u}</td><td class="mono">${fv(k,v)} ${u}</td><td class="mono">${v>=b?'+':''}${(v-b).toFixed(d)}</td><td class="${cls[q]}">${lbl[q]}</td></tr>`}).join('')}</table></div>`+
+ (pt.length?`<div class="ia" data-l="${a.lv}"><strong>Potential physiological trends · PREDICTED SCENARIO</strong>${pt.map(p=>`<div class="sub">• ${p[1]}</div>`).join('')}<small class="sub">Pattern descriptions only. Not a diagnosis, not validated.</small></div>`:'')+
+ (a.out.length?a.out.map(f=>fnd(f,a.out,a.lv)).join(''):'<div class="sub" style="margin-top:10px">No significant deviation from this astronaut’s baseline.</div>')}
+function rBeyond(){
+const svg_=`<svg viewBox="0 0 660 232" class="band" role="img" aria-label="Conceptual exploded view of a screen-free wristband"><g font-size="11" fill="#647786" font-family="IBM Plex Sans,sans-serif"><rect x="20" y="118" width="250" height="26" rx="13" fill="#cddbe5"/><circle cx="48" cy="131" r="3" fill="#ffffff"/><circle cx="66" cy="131" r="3" fill="#ffffff"/><circle cx="84" cy="131" r="3" fill="#ffffff"/><rect x="110" y="96" width="70" height="30" rx="9" fill="#1677a8"/><rect x="122" y="104" width="46" height="4" rx="2" fill="#ffffff" opacity=".35"/><text x="20" y="176">Assembled: module snaps into the strap</text><rect x="345" y="170" width="90" height="10" rx="3" fill="none" stroke="#1677a8" stroke-dasharray="3 3"/><rect x="320" y="178" width="320" height="24" rx="12" fill="#cddbe5"/><path d="M390 44v8M390 76v8M390 108v8M390 140v6M390 162v8" stroke="#9db2c0" stroke-dasharray="2 3"/><rect x="345" y="20" width="90" height="24" rx="6" fill="#1677a8"/><rect x="345" y="52" width="90" height="24" rx="6" fill="#1677a8" opacity=".8"/><rect x="345" y="84" width="90" height="24" rx="6" fill="#1677a8" opacity=".65"/><rect x="345" y="116" width="90" height="24" rx="6" fill="#1677a8" opacity=".5"/><rect x="345" y="146" width="90" height="16" rx="6" fill="#e0a21a" opacity=".7"/><text x="448" y="36">Module housing</text><text x="448" y="68">Rechargeable battery</text><text x="448" y="100">MCU + BLE + signal electronics</text><text x="448" y="132">Skin temperature sensor</text><text x="448" y="158">Optical PPG sensor (skin side)</text><text x="320" y="222">Replaceable silicone or TPU strap</text></g></svg>`;
+const ridge=`<svg class="ridge" viewBox="0 0 600 190" role="img" aria-label="A heartbeat line that turns into the Andes skyline"><path pathLength="1" d="M0 118H58l7-9 7 9h12l6 7 8-62 8 72 7-17h16l12-14 12 6 14-52 14 40 12-22 18-70 20 78 14-30 16 16 20-44 16 40 14-18 18 10 16-14 18 14 14-8 18 8 12-4l30 50 20-8 24 10 22-8 26 8 20-4H600"/><g font-size="12" fill="#647786" font-family="IBM Plex Sans,sans-serif"><text x="24" y="178">COSTA</text><text x="268" y="178">SIERRA</text><text x="520" y="178">SELVA</text></g></svg>`;
+const tg=(t,c)=>`<span class="tag ${c||''}">${t}</span>`,tile=([i,h,p,x])=>`<div class="bxt${x||''}">${i?`<div class="ic">${i}</div>`:''}<b>${h}</b><span>${p}</span></div>`,sec=(t,b,g)=>`<div class="bxs">${t}</div>${g?`<div class="bxg">${b}</div>`:b}`;
+const need=[['','Accessible','Reaches Andean and Amazon communities, not only big-city hospitals.',' n'],['','Efficient','One screen lets a small team watch many people and act on what matters first.',' n'],['','Innovative','Personal baselines and explainable alerts on low-cost hardware.',' n']];
+const who=[['🏥','Hospitals and health posts','Follow several patients from one screen and catch decline early.'],['🚒','Firefighters (Bomberos)','Heat and exertion strain, compared with each person’s own baseline.'],['🚓','Police (PNP)','Long shifts and tense operations: spot strain before it becomes injury.'],['🎖️','Armed forces','Training and deployments in jungle, desert and high altitude.'],['🔬','Research teams','Altitude and Amazon studies with consistent, comparable data.'],['🛟','Rescue and civil defense','Teams working far from care during quakes, floods and landslides.'],['⛰️','High-altitude workers','Mining and mountain crews, where low oxygen and poor sleep are daily risks.'],['🏘️','Remote communities','A local health promoter monitors; a doctor far away sees the alerts.']];
+const fam=[['CORE','The shared engine: baselines, anomaly detection, risk analysis, explainable alerts.','FOUNDATION',''],['SPACE','Working prototype for astronaut monitoring, on simulated data.','PROTOTYPE','good'],['CARE','The same engine adapted to Peruvian hospitals and field teams.','PROPOSED · NOT DEPLOYED','warn']];
+const flow=[['Wristband','Senses pulse, SpO₂ estimate and skin temperature','CONCEPT','warn'],['Phone or gateway','Works offline and syncs when the signal returns','CONCEPT','warn'],['ASTRA CORE','Baselines, anomaly detection, explainable alerts','PROTOTYPE','good'],['Team dashboard','One view for the whole team','PROTOTYPE','good']];
+const road=[['Now','ASTRA SPACE','Simulated data, crew monitoring, risk analysis'],['Next','ASTRA BAND + CARE','Sensors, prototype hardware, multi-user and offline transmission'],['Later','Validation and pilots','Sensor validation, clinical testing, privacy review (Ley 29733), pilots in Peruvian settings']];
+$('#v-beyond').innerHTML=
+`<article class="card"><div class="bxh"><div>${tg('<i class="flag"></i>PERÚ · CONCEPT, NOT A DEPLOYED MEDICAL DEVICE','warn')}<h2>Health monitoring for every corner of Peru</h2><p>Born from space medicine, ASTRA could bring simple, affordable early warning to people who work and live far from care, from Andean towns to Amazon rivers.</p><div class="rg">${['Costa','Sierra','Selva'].map(x=>tg(x)).join('')}</div></div>${ridge}</div></article>`+
+sec('Peru needs care that is…',need.map(tile).join(''),1)+
+`<p class="sub" style="max-width:80ch;margin:10px 0 0">The context: a long, varied territory, several separate health systems (MINSA, EsSalud, armed forces and police, private) and some communities hours or days from a hospital.</p>`+
+sec('Who ASTRA could serve',who.map(tile).join(''),1)+
+sec('One platform, three parts',fam.map(([h,p,t,c])=>`<div class="bxt"><div class="ct" style="margin:0 0 6px"><b style="font-size:17px">ASTRA ${h}</b>${tg(t,c)}</div><span>${p}</span></div>`).join(''),1)+
+`<article class="card" style="margin-top:24px"><div class="ct"><div><h2>ASTRA BAND · minimal hardware, meaningful monitoring</h2><p>A screen-free wristband concept for essential measurements</p></div>${tg('CONCEPT · FUTURE DEVELOPMENT','warn')}</div><div class="g g2" style="margin:0;align-items:center">${svg_}<div>${[['Measures','Heart rate, SpO₂ estimate, skin temperature'],['Left out on purpose','Touchscreen, GPS, cellular, speakers'],['Low cost by design','Reusable module, replaceable strap, potential local assembly']].map(([a,b])=>`<div class="row"><span>${a}</span><strong style="text-align:right;font-weight:600">${b}</strong></div>`).join('')}<p class="sub" style="font-size:12px">Honest limits: SpO₂ needs sensor validation, skin temperature is not core temperature, blood pressure is not claimed and no cost figure is given.</p></div></div></article>`+
+sec('How it works',`<div class="fl">${flow.map(([h,p,t,c],i)=>`${i?'<div class="a">›</div>':''}<div class="bxt"><div class="ct" style="margin:0 0 4px"><b>${h}</b>${tg(t,c)}</div><span>${p}</span></div>`).join('')}</div>`)+
+sec('Roadmap',`<div class="bxg">${road.map(([n,h,p],i)=>`<div class="bxt"><span style="color:#1677a8;font-weight:600;font-size:12px">STAGE ${i+1} · ${n.toUpperCase()}</span><b style="margin-top:2px">${h}</b><span>${p}</span></div>`).join('')}</div><p class="sub" style="font-size:12px">No completion dates are given. Later stages are not yet accomplished.</p>`)+
+`<p class="q">“Technology developed to protect human life beyond Earth can inspire new ways to protect human life on Earth.”</p>`}
+rBeyond();
+$('#scRst').onclick=()=>{scv={...C[cu].b};rScen()};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-pre]');if(!t)return;const d=PRE[t.dataset.pre];scv={...C[cu].b};for(const k in d)scv[k]=clp(k,C[cu].b[k]+d[k]);rScen()});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.sl;if(!k)return;scv[k]=+e.target.value;e.target.parentElement.querySelector('b').textContent=fv(k,scv[k])+' '+MK[k][3];sOut()});
+
+init();
+$('#cs').innerHTML=C.map((c,i)=>`<option value="${i}">${c.n} · ${c.r}</option>`).join('');$('#cs').onchange=e=>pick(+e.target.value);
+$('#mSel').innerHTML=$('#hSel').innerHTML=M.map(m=>`<option value="${m[0]}">${m[2]} · ${m[3]}</option>`).join('');
+$('#mSel').onchange=e=>{mk=e.target.value;rAll()};$('#hSel').onchange=rHist;
+document.addEventListener('click',e=>{const t=e.target.closest('[data-v],[data-k],[data-pick],[data-prof],[data-hist],[data-trend],[data-f],[data-del],[data-r],[data-rc]');if(!t)return;const d=t.dataset;
+if(d.v)go(d.v);else if(d.k){mk=d.k;rAll()}else if(d.pick!==undefined)pick(+d.pick);else if(d.prof!==undefined){pick(+d.prof);go('crew')}
+else if(d.hist){$('#hSel').value=d.hist;go('history')}else if(d.trend){mk=d.trend;$('#mSel').value=mk;go('overview')}
+else if(d.f){flt=d.f;rAlerts()}else if(d.del!==undefined){A.splice(+d.del,1);rAll()}
+else if(d.r){hr=+d.r;$$('[data-r]').forEach(b=>b.classList.toggle('on',b===t));rHist()}else if(d.rc!==undefined){rcat=+d.rc;rSrc()}});
+document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.matches&&t.matches('article[data-pick]')){e.preventDefault();const i=+t.dataset.pick;pick(i);const r=$('#roster').children[i];r&&r.focus()}});
+$('#live').onclick=()=>{$('#tLive').checked=!$('#tLive').checked;restart()};$('#tLive').onchange=restart;
+$('#tSpd').onchange=e=>{iv=+e.target.value;restart()};$('#tAcc').onchange=e=>{document.documentElement.style.setProperty('--cy',e.target.value);rAll()};
+$('#bAno').onclick=()=>{const c=S[cu].cur;c.hr+=35;c.rr+=6;c.spo2-=4;c.temp+=1.1;c.hrv-=22;chk(cu);go('alerts')};
+$('#bRst').onclick=()=>{init();rAll()};$('#clr').onclick=()=>{A=[];rAll()};
+addEventListener('resize',()=>{line($('#cv'),S[cu].hist[mk],MK[mk][6],1,['60 min ago','+15 min'],C[cu].b[mk]);if(view==='history')rHist()});
+const clk=()=>{$('#clk').textContent=new Date().toLocaleString(LANG==='es'?'es-PE':[],{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})};clk();setInterval(clk,1000);
+i18nInit();restart();go('overview');
+</script></body></html>
